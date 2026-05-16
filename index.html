@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Noc Muzeów 2026 — Wszystkie wydarzenia</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:#0a0a14;color:#e8e8f0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+/* Header */
+.hdr{background:linear-gradient(160deg,#0d0d22,#1a0a2e);padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0}
+.hdr-title{font-size:18px;font-weight:700;background:linear-gradient(135deg,#fff,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr-sub{font-size:11px;color:rgba(255,255,255,.35);margin-top:1px}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:4px 11px;font-size:11px;white-space:nowrap}
+.chip span{color:#fff;font-weight:600;margin-right:3px}
+/* Layout */
+.layout{display:grid;grid-template-columns:340px 1fr;flex:1;overflow:hidden}
+/* Sidebar */
+.sidebar{display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.07);background:#0d0d1a;overflow:hidden}
+.filters{padding:12px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;gap:8px;flex-shrink:0}
+.search-row{display:flex;gap:6px}
+.search-box{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 11px;color:#e8e8f0;font-size:12px;outline:none}
+.search-box::placeholder{color:rgba(255,255,255,.3)}
+.search-box:focus{border-color:rgba(120,100,255,.4);background:rgba(255,255,255,.08)}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap}
+select.flt{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:7px;padding:5px 8px;color:#e8e8f0;font-size:11px;outline:none;cursor:pointer;flex:1;min-width:120px}
+select.flt:focus{border-color:rgba(120,100,255,.4)}
+.toggle-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tog-label{font-size:11px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:5px;cursor:pointer}
+.tog-label input{accent-color:#7864ff}
+.filter-result{font-size:10px;color:rgba(255,255,255,.3);padding:0 2px}
+.btn-clear{background:rgba(255,80,60,.1);border:1px solid rgba(255,80,60,.2);border-radius:6px;padding:4px 9px;font-size:10px;color:#ff6450;cursor:pointer}
+.btn-clear:hover{background:rgba(255,80,60,.2)}
+/* Venue list */
+.venue-scroll{flex:1;overflow-y:auto;padding:8px}
+.venue-scroll::-webkit-scrollbar{width:4px}
+.venue-scroll::-webkit-scrollbar-track{background:transparent}
+.venue-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px}
+.vcard{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.015);margin-bottom:4px;cursor:pointer;transition:all .12s;user-select:none}
+.vcard:hover{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.12)}
+.vcard.selected{border-color:rgba(100,220,130,.3);background:rgba(60,180,100,.05)}
+.vcard.deselected{opacity:.35}
+.vcard-chk{width:15px;height:15px;border-radius:3px;border:1.5px solid rgba(255,255,255,.2);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.vcard.selected .vcard-chk{background:#3dbb6e;border-color:#3dbb6e}
+.vcard-tick{display:none;color:#fff;font-size:9px;font-weight:700}
+.vcard.selected .vcard-tick{display:block}
+.vcard-body{flex:1;min-width:0}
+.vcard-name{font-size:12px;font-weight:600;color:#f0f0ff;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vcard-inst{font-size:10px;color:rgba(255,255,255,.28);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.vcard-foot{display:flex;align-items:center;gap:4px;margin-top:4px;flex-wrap:wrap}
+.vhours{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums}
+.bdg{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px}
+.bdg-d{border-radius:10px;font-size:9px;font-weight:600;padding:1px 6px}
+.bdg-warn{background:rgba(255,80,60,.14);color:#ff5040;border:1px solid rgba(255,80,60,.24)}
+.bdg-fixed{background:rgba(160,80,255,.14);color:#b47fff;border:1px solid rgba(160,80,255,.24)}
+.bdg-cat{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.1)}
+.vcard-link{color:rgba(120,100,255,.6);font-size:11px;flex-shrink:0;text-decoration:none;padding:2px 4px;border-radius:4px;transition:color .12s}
+.vcard-link:hover{color:#a590ff;background:rgba(120,100,255,.1)}
+/* District badge colors */
+.bd-Bemowo{background:rgba(255,200,50,.1);color:#ffc832}
+.bd-Białołęka{background:rgba(100,220,180,.1);color:#64dcb4}
+.bd-Bielany{background:rgba(160,220,100,.08);color:#a0dc64}
+.bd-Mokotów{background:rgba(255,130,100,.1);color:#ff8264}
+.bd-Ochota{background:rgba(200,120,255,.1);color:#c878ff}
+.bd-Praga-Północ{background:rgba(80,220,180,.1);color:#50dca4}
+.bd-Praga-Południe{background:rgba(60,200,160,.1);color:#3cc8a0}
+.bd-Śródmieście{background:rgba(100,180,255,.1);color:#64b4ff}
+.bd-Targówek{background:rgba(80,200,160,.08);color:#50c8a0}
+.bd-Ursus{background:rgba(180,100,255,.1);color:#b464ff}
+.bd-Ursynów{background:rgba(255,150,80,.1);color:#ff9650}
+.bd-Wawer{background:rgba(100,200,80,.1);color:#64c850}
+.bd-Wilanów{background:rgba(255,180,100,.1);color:#ffb464}
+.bd-Wola{background:rgba(150,200,255,.1);color:#96c8ff}
+.bd-Włochy{background:rgba(180,140,255,.1);color:#b48cff}
+.bd-Żoliborz{background:rgba(140,220,100,.1);color:#8cdc64}
+.bd-outer{background:rgba(255,255,255,.06);color:rgba(255,255,255,.4)}
+/* Right panel */
+.panel{display:flex;flex-direction:column;overflow:hidden}
+.panel-hdr{padding:14px 20px 10px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;display:flex;align-items:center;gap:10px}
+.panel-label{font-size:10px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:rgba(120,111,255,.7)}
+.panel-stats{margin-left:auto;display:flex;gap:8px;font-size:11px;color:rgba(255,255,255,.4)}
+.panel-scroll{flex:1;overflow-y:auto;padding:16px 20px}
+.panel-scroll::-webkit-scrollbar{width:4px}
+.panel-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+/* Timeline */
+.tl{display:flex;flex-direction:column}
+.tl-transport{display:flex;align-items:center;gap:8px;padding:3px 0 3px 28px}
+.tl-tc{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.tc-walk{background:rgba(80,220,150,.08);color:#50dc96;border:1px solid rgba(80,220,150,.2)}
+.tc-transit{background:rgba(100,180,255,.08);color:#6ab4ff;border:1px solid rgba(100,180,255,.2)}
+.tc-taxi{background:rgba(255,200,50,.08);color:#ffc832;border:1px solid rgba(255,200,50,.2)}
+.tc-taxi.urg{background:rgba(255,100,80,.1);color:#ff6450;border-color:rgba(255,100,80,.3);font-weight:700}
+.tl-row{display:flex;gap:0}
+.tl-tc-col{width:48px;flex-shrink:0;text-align:right;padding-right:8px;padding-top:14px}
+.tl-t{font-size:11.5px;font-weight:700;color:rgba(255,255,255,.4);font-variant-numeric:tabular-nums}
+.tl-dc{width:20px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding-top:17px}
+.tl-dot{width:9px;height:9px;border-radius:50%;border:2px solid;flex-shrink:0}
+.tl-line{width:2px;flex:1;min-height:14px;background:rgba(255,255,255,.07);margin-top:4px}
+.tl-content{flex:1;margin-left:10px;padding-bottom:5px}
+.tl-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 13px;margin-top:3px}
+.tl-card.fixed-win{border-color:rgba(160,80,255,.25);background:rgba(160,80,255,.05)}
+.tl-card.warn-missed{border-color:rgba(255,80,60,.3);background:rgba(255,80,60,.05);opacity:.6}
+.tl-card.warn-tight{border-color:rgba(255,160,50,.25);background:rgba(255,160,50,.04)}
+.tl-cname{font-size:13px;font-weight:600;color:#f5f5ff}
+.tl-caddr{font-size:10.5px;color:rgba(255,255,255,.32);margin-top:2px}
+.tl-ctags{display:flex;align-items:center;gap:4px;margin-top:6px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+.tag-dur{background:rgba(255,255,255,.05);color:rgba(255,255,255,.38);border:1px solid rgba(255,255,255,.1)}
+.tag-close{background:rgba(255,200,50,.08);color:#ffc832;border:1px solid rgba(255,200,50,.2)}
+.tag-fixed{background:rgba(160,80,255,.1);color:#b47fff;border:1px solid rgba(160,80,255,.25)}
+.tag-missed{background:rgba(255,80,60,.12);color:#ff5040;border:1px solid rgba(255,80,60,.25)}
+.tag-tight{background:rgba(255,160,50,.1);color:#ffa032;border:1px solid rgba(255,160,50,.2)}
+.tag-ok{background:rgba(80,220,130,.08);color:#50dc82;border:1px solid rgba(80,220,130,.15)}
+.tag-link{background:rgba(120,100,255,.1);color:#a590ff;border:1px solid rgba(120,100,255,.25);text-decoration:none;cursor:pointer}
+.tag-link:hover{background:rgba(120,100,255,.2)}
+.gap-note{font-size:10.5px;color:rgba(255,255,255,.25);margin-top:4px;font-style:italic}
+/* Cluster dot colors */
+.dot-bemowo{border-color:#ffc832;background:rgba(255,200,50,.2)}
+.dot-bialoleka{border-color:#64dcb4;background:rgba(100,220,180,.2)}
+.dot-praga{border-color:#50dca4;background:rgba(80,220,180,.2)}
+.dot-zoliborz{border-color:#a0dc64;background:rgba(160,220,100,.2)}
+.dot-riverside{border-color:#6ab4ff;background:rgba(100,180,255,.2)}
+.dot-oldtown{border-color:#dca850;background:rgba(220,170,80,.2)}
+.dot-royalway{border-color:#6ab4ff;background:rgba(100,180,255,.15)}
+.dot-centrum{border-color:#b47fff;background:rgba(160,80,255,.2)}
+.dot-ochota{border-color:#c878ff;background:rgba(200,120,255,.2)}
+.dot-mokotow{border-color:#ff8264;background:rgba(255,130,100,.2)}
+.dot-outer{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.08)}
+.summary{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 15px;margin-top:14px;display:flex;gap:14px;flex-wrap:wrap}
+.sum-item{font-size:11.5px;color:rgba(255,255,255,.4)}
+.sum-item strong{color:rgba(255,255,255,.8);display:block;font-size:13px;margin-bottom:1px}
+.no-plan{font-size:12px;color:rgba(255,255,255,.3);text-align:center;padding:60px 20px;line-height:1.7}
+.no-plan strong{color:rgba(255,255,255,.5);display:block;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="hdr-title">Noc Muzeów 2026 — Planer</div>
+    <div class="hdr-sub">Warszawa · Piątek, 16 maja 2026 · Wszystkie 362 wydarzenia</div>
+  </div>
+  <div class="hdr-right">
+    <div class="chip"><span id="s-count">0</span>wybranych</div>
+    <div class="chip">Koniec: <span id="s-end">—</span></div>
+  </div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="filters">
+      <div class="search-row">
+        <input type="text" class="search-box" id="search" placeholder="Szukaj nazwy, instytucji, ulicy…" oninput="applyFilters()">
+      </div>
+      <div class="filter-row">
+        <select class="flt" id="f-district" onchange="applyFilters()">
+          <option value="">Wszystkie dzielnice</option>
+          <option value="Bemowo">Bemowo</option>
+          <option value="Białołęka">Białołęka</option>
+          <option value="Bielany">Bielany</option>
+          <option value="Mokotów">Mokotów</option>
+          <option value="Ochota">Ochota</option>
+          <option value="Praga-Północ">Praga-Północ</option>
+          <option value="Praga-Południe">Praga-Południe</option>
+          <option value="Śródmieście">Śródmieście</option>
+          <option value="Targówek">Targówek</option>
+          <option value="Ursus">Ursus</option>
+          <option value="Ursynów">Ursynów</option>
+          <option value="Wawer">Wawer</option>
+          <option value="Wilanów">Wilanów</option>
+          <option value="Wola">Wola</option>
+          <option value="Włochy">Włochy</option>
+          <option value="Żoliborz">Żoliborz</option>
+        </select>
+        <select class="flt" id="f-cat" onchange="applyFilters()">
+          <option value="">Wszystkie kategorie</option>
+          <option>Film</option><option>Happening</option><option>Koncert</option>
+          <option>Performance</option><option>Pokaz</option><option>Spacer</option>
+          <option>Spektakl</option><option>Spotkanie</option><option>Warsztaty</option>
+          <option>Wernisaż</option><option>Wykład</option><option>Wystawa</option>
+          <option>Zwiedzanie</option>
+        </select>
+      </div>
+      <div class="filter-row">
+        <select class="flt" id="f-open" onchange="applyFilters()">
+          <option value="">Otwarte od</option>
+          <option value="960">od 16:00</option>
+          <option value="1020">od 17:00</option>
+          <option value="1080">od 18:00</option>
+          <option value="1140">od 19:00</option>
+          <option value="1200">od 20:00</option>
+          <option value="1260">od 21:00</option>
+        </select>
+        <select class="flt" id="f-close" onchange="applyFilters()">
+          <option value="">Czynne do</option>
+          <option value="1290">do 21:30+</option>
+          <option value="1380">do 23:00+</option>
+          <option value="1440">do 00:00+</option>
+          <option value="1500">do 01:00+</option>
+          <option value="1560">do 02:00+</option>
+        </select>
+      </div>
+      <div class="toggle-row">
+        <label class="tog-label"><input type="checkbox" id="f-warsaw" onchange="applyFilters()" checked> Tylko Warszawa</label>
+        <span class="filter-result" id="f-result">— miejsc</span>
+        <button class="btn-clear" onclick="clearFilters()">Wyczyść filtry</button>
+      </div>
+    </div>
+    <div class="venue-scroll" id="venue-list"></div>
+  </div>
+  <div class="panel">
+    <div class="panel-hdr">
+      <div class="panel-label">Plan zwiedzania</div>
+      <div class="panel-stats" id="p-stats"></div>
+    </div>
+    <div class="panel-scroll" id="timeline"></div>
+  </div>
+</div>
+<script>
+const VENUES=[
+{id:275,name:'10 milionów drzew',inst:'Melt Immersive Museum sp. z o.o.',addr:'pl. Powstańców Warszawy 2A',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1080,close:1560,dur:30,os:'18:00',cs:'02:00',warsaw:true},
+{id:156,name:'100. lat sportu w Policji',inst:'Komenda Główna Policji',addr:'ul. Orkana 14',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Koncert','Pokaz','Wystawa','Zwiedzanie'],open:1080,close:1320,dur:60,os:'18:00',cs:'22:00',warsaw:true},
+{id:216,name:'90 lat Muzeum Warszawy. Jubileuszowa Noc Muzeów',inst:'Muzeum Warszawy',addr:'Rynek Starego Miasta 42',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:70,name:'Aktywny wyskakany czas dla każdego',inst:'DJUMP Kierznikowicz Smoliński s.c.',addr:'al. Krakowska 61',city:'Warszawa',dist:'Włochy',cluster:'ochota',cats:['Spotkanie'],open:1260,close:1440,dur:30,os:'21:00',cs:'00:00',warsaw:true},
+{id:150,name:'Alesia: do zobaczenia! - wystawa ilustracji Alesi Zawodzińskiej',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Jezuicka 4 (wejście od ul. Brzozowej)',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa'],open:960,close:1260,dur:30,os:'16:00',cs:'21:00',warsaw:true},
+{id:310,name:'Alicja w Krainie Czarów/Di Awantures fun Alis in Wunderland - czytanie performatywne',inst:'Centrum Kultury Jidysz',addr:'ul. Andersa 15',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Performance','Spotkanie'],open:1200,close:1260,dur:45,os:'20:00',cs:'21:00',warsaw:true},
+{id:357,name:'Animatsuriichi - nocne granie w mahjonga',inst:'Stowarzyszenie Animatsuri',addr:'ul. Solec 52 lok. 69',city:'Warszawa',dist:'Śródmieście',cluster:'riverside',cats:['Warsztaty'],open:1080,close:1620,dur:60,os:'18:00',cs:'03:00',warsaw:true},
+{id:324,name:'Apteka Zabytków na Nowym Świecie',inst:'Mazowiecki Wojewódzki Konserwator Zabytków',addr:'ul. Nowy Świat 18/20',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Wernisaż','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:154,name:'Bądź malarzem jednej nocy - otwarte warsztaty malarskie w plenerze',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Boleść 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Warsztaty'],open:1020,close:1200,dur:60,os:'17:00',cs:'20:00',warsaw:true},
+{id:171,name:'Barbakan nocą - odkryj wnętrza fortyfikacji staromiejskich',inst:'Barbakan',addr:'ul. Nowomiejska 15/17',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:166,name:'Boeing 737-800 - spektakl Teatru Wysokiego (Grupa Twórcza SCEK)',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Jezuicka 4',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Spektakl'],open:1020,close:1050,dur:60,os:'17:00',cs:'17:30',warsaw:true},
+{id:16,name:'BOTANIKA w Galerii Pod Okiem',inst:'Ośrodek Kultury Ochoty, Galeria Pod Okiem',addr:'ul. Grójecka 79',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Wernisaż','Wystawa','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:15,name:'BOTANIKA w Magazynie Sztuk',inst:'Ośrodek Kultury Ochoty, Magazyn Sztuk',addr:'ul. Radomska13/21',city:'wejście od ul. Nieborowskiej',dist:'Warszawa',cluster:'outer',cats:['Warsztaty','Wernisaż','Wystawa'],open:1080,close:1260,dur:60,os:'18:00',cs:'21:00',warsaw:false},
+{id:295,name:'BUW królów',inst:'Biblioteka Uniwersytecka w Warszawie',addr:'ul. Dobra 56/66',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spacer','Warsztaty','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:60,os:'19:00',cs:'01:00',warsaw:true},
+{id:303,name:'Canvas Alive: Tam, gdzie tradycja spotyka technologię',inst:'Akademia WIT',addr:'ul. Gizów 6',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Wystawa'],open:1140,close:1440,dur:30,os:'19:00',cs:'00:00',warsaw:true},
+{id:214,name:'Ceramika polskich artystów przy eliksirach',inst:'LoVAn Art Gallery',addr:'ul. Piwna 20/26',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Zwiedzanie'],open:1020,close:1500,dur:45,os:'17:00',cs:'01:00',warsaw:true},
+{id:338,name:'CyberNoc w PJATK',inst:'Polsko-Japońska Akademia Technik Komputerowych',addr:'ul. Koszykowa 86',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Koncert','Pokaz','Spacer','Spotkanie','Warsztaty','Wykład','Wystawa'],open:1080,close:1440,dur:60,os:'18:00',cs:'00:00',warsaw:true},
+{id:126,name:'Czechow musi zginąć - w Teatrze XL',inst:'Fundacja Teatru XL dla artystów i rozwoju',addr:'pl. Hallera 5 lok. 10a',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spektakl','Spotkanie'],open:1200,close:1380,dur:60,os:'20:00',cs:'23:00',warsaw:true},
+{id:281,name:'Czupurne Panny - absolwentki Platerek na przekór czasom',inst:'Platerki - Towarzystwo Oświatowe im. Cecylii Plater-Zyberkówny',addr:'ul. Piękna 24/26',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:176,name:'Dajcie się ponieść praskiej historii! Noc Muzeów w Muzeum Warszawskiej Pragi',inst:'Muzeum Warszawskiej Pragi',addr:'ul. Targowa 50/52',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Koncert','Spacer','Wystawa','Zwiedzanie'],open:1140,close:1440,dur:60,os:'19:00',cs:'00:00',warsaw:true},
+{id:327,name:'Dekodowanie Kolekcji w CSW',inst:'Centrum Sztuki Współczesnej Zamek Ujazdowski',addr:'ul. Jazdów 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wernisaż','Wystawa','Zwiedzanie'],open:1140,close:1320,dur:45,os:'19:00',cs:'22:00',warsaw:true},
+{id:109,name:'Dobre kreski: Kasia Mazur. Pieski i kreski',inst:'Muzeum Karykatury',addr:'ul. Brzozowa 6/8a',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wernisaż','Wystawa'],open:1080,close:1320,dur:30,os:'18:00',cs:'22:00',warsaw:true},
+{id:117,name:'Dobry wieczór z Ormianami',inst:'Fundacja Kultury i Dziedzictwa Ormian Polskich',addr:'ul. Świętojerska 12',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spacer','Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1320,dur:45,os:'18:00',cs:'22:00',warsaw:true},
+{id:333,name:'Dom otwarty - w odwiedzinach u Rotmistrza Pileckiego',inst:'Instytut Solidarności i Męstwa im. Witolda Pileckiego',addr:'ul. Sienna 82',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Happening','Pokaz','Spacer','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:284,name:'Drewniany Otwock i jego sławni mieszkańcy',inst:'Akademia Techniczno-Artystyczna / Mazowiecki Wojewódzki Konserwator Zabytków',addr:'ul. Rejtana 16',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Wernisaż','Wystawa'],open:1080,close:1320,dur:30,os:'18:00',cs:'22:00',warsaw:true},
+{id:127,name:'Drogi Wspólne Równoległe - w Pracowni Magdy Raczko',inst:'Magda Raczko Galeria i Pracownia',addr:'ul. Bruna 32',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Happening','Koncert','Performance','Wystawa'],open:1140,close:1230,dur:60,os:'19:00',cs:'20:30',warsaw:true},
+{id:69,name:'Dus buch fyn Gan Ejdn / Księga Raju - w Teatrze Żydowskim',inst:'Teatr Żydowski w Warszawie',addr:'al. Niepodległości 141a',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spektakl'],open:1140,close:1260,dur:60,os:'19:00',cs:'21:00',warsaw:true},
+{id:268,name:'Dziedzictwo Statystyki Polskiej. Najcenniejsze zbiory z kolekcji Centralnej Biblioteki Statystycznej',inst:'Centralna Biblioteka Statystyczna im. Stefana Szulca',addr:'al. Niepodległości 208 - na granicy terenu GUS i Pola Mokotowskiego od strony Pomnika Lotników',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wernisaż','Wystawa','Zwiedzanie'],open:960,close:1200,dur:45,os:'16:00',cs:'20:00',warsaw:true},
+{id:125,name:'Elwiryon w Willi Frankówka',inst:'Miejski Ośrodek Kultury / Dom Nauki i Sztuki / Willa Frankówka',addr:'ul. Kardynała Wyszyńskiego 2',city:'Józefów',dist:'',cluster:'outer',cats:['Koncert','Pokaz','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1020,close:1260,dur:60,os:'17:00',cs:'21:00',warsaw:false},
+{id:282,name:'Empatia. Przestrzeń wspólnego odczuwania',inst:'Projekt Gorgeous',addr:'ul. Zwycięzców 11/6A',city:'Warszawa',dist:'Praga-Południe',cluster:'praga',cats:['Happening','Performance','Pokaz','Spotkanie','Warsztaty','Wernisaż','Wystawa','Zwiedzanie'],open:1080,close:1410,dur:60,os:'18:00',cs:'23:30',warsaw:true},
+{id:113,name:'Energia - w Muzeum Geologicznym',inst:'Muzeum Geologiczne Państwowego Instytutu Geologicznego-PIB',addr:'ul. Rakowiecka 4',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Wystawa'],open:1080,close:1440,dur:30,os:'18:00',cs:'00:00',warsaw:true},
+{id:31,name:'Engramy. Ślady pamięci',inst:'Związek Polskich Artystów Malarzy i Grafików ZPAMiG',addr:'ul. Siedmiogrodzka 3a',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:175,name:'Ex Libris artystyczny w zbiorach Muzeum Drukarstwa',inst:'Muzeum Drukarstwa Warszawskiego',addr:'ul. Ząbkowska 23/25',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:63,name:'Fabryczne Echa - odkryj Warszawę, której nie znasz',inst:'Centrum Kultury i Aktywności w Dzielnicy Targówek m.st. Warszawy',addr:'ul. Siarczana 6',city:'Warszawa',dist:'Targówek',cluster:'praga',cats:['Spotkanie','Warsztaty','Wystawa'],open:1020,close:1260,dur:60,os:'17:00',cs:'21:00',warsaw:true},
+{id:279,name:'Fabryka Norblina bez tajemnic. Plater w roli głównej',inst:'Muzeum Fabryki Norblina',addr:'ul. Żelazna 51/53',city:'budynek Plater',dist:'poziom 0',cluster:'outer',cats:['Film','Spacer','Wystawa','Zwiedzanie'],open:1200,close:1500,dur:90,os:'20:00',cs:'01:00',warsaw:false},
+{id:292,name:'Festiwal Tramwajów - 160 lat tramwajów w Warszawie',inst:'Tramwaje Warszawskie sp. z o.o.',addr:'ul. Kawęczyńska 16',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Koncert','Pokaz','Spacer','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:60,os:'18:00',cs:'00:00',warsaw:true},
+{id:50,name:'Filmowy gabinet Ryszarda Ochódzkiego – zwiedzanie kultowego miejsca na Stadionie Podskarbińska',inst:'Ośrodek Sportu i Rekreacji Dzielnicy Praga-Południe m.st. Warszawy',addr:'ul. Chrzanowskiego 23',city:'Warszawa',dist:'Praga-Południe',cluster:'praga',cats:['Film','Zwiedzanie'],open:1140,close:1500,dur:90,os:'19:00',cs:'01:00',warsaw:true},
+{id:328,name:'Fotograficzna Noc Muzeów z Elliotem Erwittem w DSH',inst:'Dom Spotkań z Historią',addr:'ul. Karowa 20',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1080,close:1440,dur:30,os:'18:00',cs:'00:00',warsaw:true},
+{id:104,name:'Fotoplastikon Wawerski',inst:'Biblioteka Publiczna w Dzielnicy Wawer m. st. Warszawy',addr:'ul. Błękitna 32',city:'Warszawa',dist:'Wawer',cluster:'mokotow',cats:['Pokaz','Spotkanie','Wykład','Wystawa','Zwiedzanie'],open:1020,close:1380,dur:45,os:'17:00',cs:'23:00',warsaw:true},
+{id:280,name:'Gabinet Melchiora Wańkowicza',inst:'Muzeum Literatury im. Adama Mickiewicza',addr:'ul. Trawiastej 29',city:'Warszawa',dist:'Wawer',cluster:'mokotow',cats:['Wystawa','Zwiedzanie'],open:1080,close:1320,dur:45,os:'18:00',cs:'22:00',warsaw:true},
+{id:196,name:'Gdy zapalają się latarnie - Noc Muzeów w Muzeum Gazowni Warszawskiej',inst:'Muzeum Gazowni Warszawskiej',addr:'ul. Krzyżanowskiego 7',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Pokaz','Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:60,os:'18:00',cs:'00:00',warsaw:true},
+{id:305,name:'Guliwer w 3026',inst:'Teatr Lalek Guliwer',addr:'ul. Różana 16',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spacer'],open:960,close:1230,dur:40,os:'16:00',cs:'20:30',warsaw:true},
+{id:311,name:'Gwiazdy na Ursynowie - wycieczki autokarowe w ramach Nocy Muzeów 2026',inst:'Urząd Dzielnicy Ursynów m.st. Warszawy',addr:'start: al. KEN 61',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Zwiedzanie'],open:960,close:1290,dur:45,os:'16:00',cs:'21:30',warsaw:true},
+{id:186,name:'Głosy Pamięci. Noc Muzeów w Izbie Pamięci',inst:'Izba Pamięci przy Cmentarzu Powstańców Warszawy',addr:'ul. Wolska 168',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Film','Spacer','Zwiedzanie'],open:960,close:1230,dur:90,os:'16:00',cs:'20:30',warsaw:true},
+{id:345,name:'Hackerspace Warszawa - Noc z komputerami i maszynami',inst:'Stowarzyszenie Warszawski Hackerspace',addr:'ul. Żelazna 103A',city:'parter',dist:'Warszawa',cluster:'outer',cats:['Warsztaty','Wykład','Zwiedzanie'],open:1260,close:1740,dur:60,os:'21:00',cs:'05:00',warsaw:false},
+{id:181,name:'Harmonia ekosystemu',inst:'Warszawskie Laboratorium Innowacji Społecznych Synergia - FabLab Pobite Gary!',addr:'ul. Błękitna 32',city:'Warszawa',dist:'Wawer',cluster:'mokotow',cats:['Warsztaty'],open:960,close:1320,dur:60,os:'16:00',cs:'22:00',warsaw:true},
+{id:5,name:'Herbatka u Marii Grzegorzewskiej - twórczyni polskiej pedagogiki specjalnej',inst:'Akademia Pedagogiki Specjalnej im. Marii Grzegorzewskiej',addr:'ul. Szczęśliwicka 40',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Spotkanie','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1320,dur:45,os:'18:00',cs:'22:00',warsaw:true},
+{id:188,name:'Historia mówi przez pokolenia. Noc Muzeów w Centralnym Przystanku Historia IPN',inst:'Centralny Przystanek Historia IPN im. Lecha Kaczyńskiego',addr:'ul. Marszałkowska 107',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Film','Koncert','Pokaz','Spotkanie','Warsztaty','Wystawa'],open:1080,close:1470,dur:60,os:'18:00',cs:'00:30',warsaw:true},
+{id:179,name:'Historia mówi przez pokolenia. Noc Muzeów w Centrum Edukacyjnym IPN im. Janusza Kurtyki',inst:'Centralny Przystanek Historia IPN. Centrum Edukacyjne IPN im. Janusza Kurtyk',addr:'ul. Marszałkowska 21/25',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Film','Pokaz','Wystawa','Zwiedzanie'],open:1080,close:1470,dur:90,os:'18:00',cs:'00:30',warsaw:true},
+{id:145,name:'Historia Vitrosgrafii w Galerii Magdaleny Kobiereckiej',inst:'Galeria Magdaleny Kobiereckiej',addr:'ul. Schroegera 74',city:'Warszawa',dist:'Bielany',cluster:'zoliborz',cats:['Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:960,close:1320,dur:45,os:'16:00',cs:'22:00',warsaw:true},
+{id:116,name:'Ichi-go ichi-e, czyli Japońska Noc Muzeów na Zaciszu',inst:'Dom Kultury Zacisze w Dzielnicy Targówek m.st. Warszawy',addr:'ul. Blokowa 1',city:'Warszawa',dist:'Targówek',cluster:'praga',cats:['Happening','Pokaz','Warsztaty'],open:960,close:1200,dur:60,os:'16:00',cs:'20:00',warsaw:true},
+{id:85,name:'Ikona i awangarda. Muzeum Ikon w Warszawie',inst:'Muzeum Ikon w Warszawie',addr:'ul. Lelechowska 5',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Koncert','Wystawa'],open:1170,close:1380,dur:60,os:'19:30',cs:'23:00',warsaw:true},
+{id:51,name:'Jak miękkie jest żelazo? - dowiesz się w Muzeum Kowalstwa',inst:'Muzeum Kowalstwa w Warszawie',addr:'ul. Przy Grobli 84',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Pokaz','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1080,close:1530,dur:60,os:'18:00',cs:'01:30',warsaw:true},
+{id:128,name:'Jan Berdak - fotografie',inst:'Instytut 116 - galeria',addr:'ul. Grochowska 116',city:'Warszawa',dist:'Praga-Południe',cluster:'praga',cats:['Wystawa'],open:1080,close:1260,dur:30,os:'18:00',cs:'21:00',warsaw:true},
+{id:343,name:'Jazzowe losy 1939-45',inst:'Fundacja Muzeum Jazzu im. Leopolda Tyrmanda',addr:'pl. Zamkowy 4',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Wykład','Wystawa'],open:1080,close:1500,dur:60,os:'18:00',cs:'01:00',warsaw:true},
+{id:190,name:'Jedna planeta – nieskończenie wiele odkryć',inst:'Fundacja Szkolna',addr:'ul. Obrzeżna 12a',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Pokaz','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:960,close:1200,dur:60,os:'16:00',cs:'20:00',warsaw:true},
+{id:245,name:'Jelita? Wchodzę w to! Sensoryczna podróż przez układ pokarmowy',inst:'Danone',addr:'Bulwar gen. Georgea Smitha Pattona',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Wystawa'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:366,name:'Jest takie kino…',inst:'Kino Specyfik',addr:'ul. Pańska 75 lok. 31',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Film','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:90,os:'18:00',cs:'23:00',warsaw:true},
+{id:220,name:'Jubileusz w zabytkowym kanale',inst:'Miejskie Przedsiębiorstwo Wodociągów i Kanalizacji w m.st. Warszawie S.A.',addr:'skrzyżowanie ulic Jagiellońskiej i Ratuszowej',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Zwiedzanie'],open:1020,close:1320,dur:45,os:'17:00',cs:'22:00',warsaw:true},
+{id:344,name:'Kamień - Papier - Nożyce na Bielanach',inst:'Jaga Hupało Born To Create',addr:'ul. Dewajtis 3',city:'Warszawa',dist:'Bielany',cluster:'zoliborz',cats:['Spotkanie','Wernisaż','Wystawa'],open:960,close:1290,dur:30,os:'16:00',cs:'21:30',warsaw:true},
+{id:309,name:'Kamień - Papier - Nożyce na Burakowskiej',inst:'Jaga Hupało Born To Create',addr:'ul. Burakowska 5/7',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Film','Happening','Performance','Pokaz','Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:960,close:1290,dur:90,os:'16:00',cs:'21:30',warsaw:true},
+{id:336,name:'Kamień - Papier - Nożyce na Kłopotowskiego',inst:'Jaga Hupało Space of Creation',addr:'ul. Kłopotowskiego 11/7U',city:'wejście od ulicy Jasińskiego',dist:'Warszawa',cluster:'outer',cats:['Pokaz','Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:960,close:1290,dur:45,os:'16:00',cs:'21:30',warsaw:false},
+{id:340,name:'Kamień - Papier - Nożyce w Muzeum Geologicznym',inst:'Jaga Hupało Born To Create',addr:'ul. Rakowiecka 4',city:'wejście od ul. Wiśniowej',dist:'Warszawa',cluster:'outer',cats:['Pokaz','Wernisaż','Wystawa'],open:960,close:1290,dur:45,os:'16:00',cs:'21:30',warsaw:false},
+{id:347,name:'Kamień - Papier - Nożyce w PAN Muzeum Ziemi',inst:'Jaga Hupało Born To Create',addr:'al. Na Skarpie 20/26-27',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Wystawa'],open:960,close:1290,dur:45,os:'16:00',cs:'21:30',warsaw:true},
+{id:76,name:'Kids Posters Night - w Galerii Autonomia',inst:'Fundacja Galeria Autonomia',addr:'ul. Andersa 13',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:960,close:1260,dur:30,os:'16:00',cs:'21:00',warsaw:true},
+{id:320,name:'Kolej łączy i zbliża. Początki i rozwój kolei na ziemiach polskich',inst:'Archiwum Główne Akt Dawnych',addr:'ul. Długa 7',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Pokaz','Spotkanie','Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:1140,close:1440,dur:60,os:'19:00',cs:'00:00',warsaw:true},
+{id:348,name:'Koncert zespołu Warsaw Tango Ensemble - tango w stylu argentyńskim i polskim',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Boleść 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert'],open:1200,close:1260,dur:60,os:'20:00',cs:'21:00',warsaw:true},
+{id:165,name:'Koncerty w Amfiteatrze Starej Prochowni SCEK',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Boleść 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert'],open:1050,close:1230,dur:60,os:'17:30',cs:'20:30',warsaw:true},
+{id:204,name:'Kontrolowany kicz - lale',inst:'Klitka, Atelier',addr:'ul. Stalowa 18',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Wystawa'],open:1080,close:1560,dur:30,os:'18:00',cs:'02:00',warsaw:true},
+{id:259,name:'Krótka Historia Warszawskiej Fabryki Wódek',inst:'Muzeum Polskiej Wódki',addr:'pl. Konesera 1',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Film','Wykład'],open:1230,close:1320,dur:90,os:'20:30',cs:'22:00',warsaw:true},
+{id:29,name:'Listy z przeszłości 2.0 - gra miejska',inst:'Dom Kultury Dorożkarnia',addr:'ul. Siekierkowska 28 (start)',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spacer','Warsztaty','Zwiedzanie'],open:960,close:1080,dur:60,os:'16:00',cs:'18:00',warsaw:true},
+{id:256,name:'Lśnienia - wystawa w Galerii Artefakt',inst:'Galeria Artefakt',addr:'Hotel Hilton',city:'Pasaż Platinum',dist:'ul. Grzybowska 61',cluster:'outer',cats:['Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:false},
+{id:98,name:'Lumiflora - w Galerii 81 stopni',inst:'Galeria 81 stopni',addr:'ul. Kłopotowskiego 38/5',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Performance','Pokaz','Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:1200,close:1440,dur:45,os:'20:00',cs:'00:00',warsaw:true},
+{id:142,name:'Maraton Improwizacji w Resorcie Komedii',inst:'Resort Komedii',addr:'ul. Bielańska 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Performance','Spektakl'],open:960,close:1500,dur:60,os:'16:00',cs:'01:00',warsaw:true},
+{id:325,name:'Maria Matiashova: Empire Expire',inst:'Fundacja Ukraiński Dom',addr:'ul. Zamenhofa 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wernisaż','Wystawa'],open:1140,close:1350,dur:30,os:'19:00',cs:'22:30',warsaw:true},
+{id:239,name:'Między przystankami, czyli opowieść o Warszawie i jej tramwajach oraz koncert',inst:'Fotoplastikon Warszawski, filia Muzeum Powstania Warszawskiego',addr:'Al. Jerozolimskie 51',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Koncert','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:60,os:'19:00',cs:'01:00',warsaw:true},
+{id:267,name:'Moja Japonia w grafice – wystawa prac Zbyszka Urbalewicza oraz warsztaty pisania imion po japońsku',inst:'MakiMaki Friends',addr:'ul. Krasińskiego 18',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Warsztaty','Wystawa'],open:1140,close:1320,dur:60,os:'19:00',cs:'22:00',warsaw:true},
+{id:323,name:'Muzeum Maryjek',inst:'Muzeum Maryjek - Ksiuty w środku',addr:'ul. Środkowa 14 lok. U2',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Koncert','Warsztaty','Wernisaż','Zwiedzanie'],open:1080,close:1500,dur:60,os:'18:00',cs:'01:00',warsaw:true},
+{id:73,name:'Muzeum pełne zachwytów',inst:'Muzeum Lazienki Królewskie',addr:'ul. Agrykola 1',city:'Warszawa',dist:'',cluster:'outer',cats:['Spacer','Spotkanie','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:45,os:'19:00',cs:'01:00',warsaw:false},
+{id:35,name:'Muzeum Szyfrów w Muzeum Życia w PRL',inst:'Muzeum Życia w PRL',addr:'ul. Piękna 28/34',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:265,name:'Muzeum Wolnej Białorusi zaprasza',inst:'Muzeum Wolnej Białorusi',addr:'ul. Foksal 11',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Koncert','Wystawa'],open:960,close:1560,dur:60,os:'16:00',cs:'02:00',warsaw:true},
+{id:304,name:'Na straży pamięci o ludziach i wydarzeniach',inst:'Mauzoleum Walki i Męczeństwa. filia Muzeum Więzienia Pawiak - oddziału Muzeum Niepodległości',addr:'al. Szucha 25',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Koncert','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:60,os:'19:00',cs:'01:00',warsaw:true},
+{id:290,name:'Nasz powrót do Skautingu',inst:'Muzeum Harcerstwa w Warszawie',addr:'ul. Konopnickiej 6',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1080,close:1410,dur:45,os:'18:00',cs:'23:30',warsaw:true},
+{id:293,name:'Nie święci garnki lepią, czyli warsztaty ceramiczne w Sztukarni',inst:'Sztukarnia',addr:'ul. Odolańska 60',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spotkanie','Warsztaty'],open:1140,close:1470,dur:60,os:'19:00',cs:'00:30',warsaw:true},
+{id:353,name:'NIK Nocą (Muzeów)',inst:'Najwyższa Izba Kontroli',addr:'ul. Filtrowa 57',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:17,name:'Noc Futbo(L)u 2026 w Legia Training Center',inst:'Legia Training Center',addr:'ul. Łazienkowska 3',city:'Książenice',dist:'',cluster:'outer',cats:['Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:false},
+{id:132,name:'Noc kina niemego z muzyką na żywo w Kinie na Boku',inst:'Białołęcki Ośrodek Kultury',addr:'ul. van Gogha 1',city:'Warszawa',dist:'Białołęka',cluster:'bialoleka',cats:['Film','Koncert','Performance'],open:1200,close:1440,dur:60,os:'20:00',cs:'00:00',warsaw:true},
+{id:27,name:'Noc Kooperatystów',inst:'Muzeum Historii Spółdzielczości w Polsce Krajowej Rady Spółdzielczej',addr:'ul. Jasna 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Film','Spacer','Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1350,dur:90,os:'18:00',cs:'22:30',warsaw:true},
+{id:253,name:'Noc Kościoła Św. Anny',inst:'Kościół Akademicki Św. Anny',addr:'ul. Krakowskie Przedmieście 68',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Koncert','Wykład','Zwiedzanie'],open:1170,close:1440,dur:60,os:'19:30',cs:'00:00',warsaw:true},
+{id:221,name:'Noc MMGiK vol.4',inst:'Stowarzyszenie Komputery Niezapomniane',addr:'ul. Dworcowa 2/12',city:'Milanówek',dist:'',cluster:'outer',cats:['Pokaz','Spacer','Spotkanie','Wystawa','Zwiedzanie'],open:1020,close:1500,dur:45,os:'17:00',cs:'01:00',warsaw:false},
+{id:114,name:'Noc Muralistów',inst:'Arte.ON Galeria Sztuki',addr:'al. Solidarności 101',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Performance','Pokaz','Spacer','Spotkanie','Warsztaty','Wernisaż','Wystawa','Zwiedzanie'],open:1020,close:1560,dur:60,os:'17:00',cs:'02:00',warsaw:true},
+{id:318,name:'Noc Muzeów - Artystyczne Ogrody Rzeźby i nie tylko',inst:'Centrum Kultury w Piasecznie',addr:'Zalesie Dolne - ul. Dębowa 3 i ul. Czeremchowa',city:'Zalesie Górne - ul. Białej Brzozy 3',dist:'Piaseczno',cluster:'outer',cats:['Happening','Koncert','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:60,os:'18:00',cs:'23:00',warsaw:false},
+{id:38,name:'Noc Muzeów - zawody artystyczne',inst:'Cech Złotników, Zegarmistrzów, Optyków, Grawerów i Brązowników',addr:'ul. Piekarska 20',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:60,os:'18:00',cs:'01:00',warsaw:true},
+{id:68,name:'Noc Muzeów Mennicy Polskiej w Łazienkach Królewskich',inst:'Mennica Polska',addr:'ul. Agrykola 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz'],open:1140,close:1440,dur:45,os:'19:00',cs:'00:00',warsaw:true},
+{id:138,name:'Noc Muzeów Ministerstwa Finansów i Krajowej Administracji Skarbowej',inst:'Ministerstwo Finansów',addr:'ul. Świętokrzyska 12',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Zwiedzanie'],open:1020,close:1380,dur:45,os:'17:00',cs:'23:00',warsaw:true},
+{id:235,name:'Noc Muzeów na ASP w Warszawie',inst:'Akademia Sztuk Pięknych w Warszawie',addr:'ul. Krakowskie Przedmieście 5',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Film','Performance','Pokaz','Wystawa'],open:1080,close:1440,dur:90,os:'18:00',cs:'00:00',warsaw:true},
+{id:170,name:'Noc Muzeów na Bielanach. Odkryj wyjątkowy Kompleks Pokamedulski',inst:'Katolickie Centrum Kultury Dobre Miejsce',addr:'ul. Dewajtis 3',city:'Warszawa',dist:'Bielany',cluster:'zoliborz',cats:['Spacer','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:229,name:'Noc Muzeów na Konserwacji',inst:'Akademia Sztuk Pięknych w Warszawie',addr:'ul. Wybrzeże Kościuszkowskie 37/39',city:'Warszawa',dist:'Śródmieście',cluster:'riverside',cats:['Pokaz','Warsztaty','Wystawa'],open:1080,close:1260,dur:60,os:'18:00',cs:'21:00',warsaw:true},
+{id:319,name:'Noc Muzeów na Koszykowej',inst:'Biblioteka Publiczna m. st. Warszawy- Biblioteka Główna Województwa Mazowieckiego',addr:'ul. Koszykowa 26/28',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spotkanie','Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1350,dur:60,os:'18:00',cs:'22:30',warsaw:true},
+{id:182,name:'Noc Muzeów na Legii',inst:'Legia Warszawa',addr:'ul. Łazienkowska 3',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spacer','Zwiedzanie'],open:1140,close:1500,dur:45,os:'19:00',cs:'01:00',warsaw:true},
+{id:54,name:'Noc Muzeów na Politechnice Warszawskiej',inst:'Politechnika Warszawska',addr:'pl. Politechniki 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Spacer','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:60,os:'18:00',cs:'23:00',warsaw:true},
+{id:227,name:'Noc Muzeów na stacji Warszawa Zachodnia: Grzybek od środka',inst:'PKP Polskie Linie Kolejowe S.A.',addr:'ul. Tunelowa 8',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Zwiedzanie'],open:960,close:1260,dur:45,os:'16:00',cs:'21:00',warsaw:true},
+{id:378,name:'Noc Muzeów na Stalowej',inst:'Stowarzyszenie Stacja Praga',addr:'ul. Stalowa 1',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Film','Koncert'],open:1200,close:1380,dur:60,os:'20:00',cs:'23:00',warsaw:true},
+{id:306,name:'Noc Muzeów na Ursynowie',inst:'Urząd Dzielnicy Ursynów m.st. Warszawy',addr:'al. KEN 61',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Film','Pokaz','Zwiedzanie'],open:1020,close:1320,dur:90,os:'17:00',cs:'22:00',warsaw:true},
+{id:362,name:'Noc Muzeów na Wydziale Wzornictwa',inst:'Wydział Wzornictwa Akademii Sztuk Pięknych w Warszawie',addr:'ul. Myśliwiecka 8',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1020,close:1320,dur:30,os:'17:00',cs:'22:00',warsaw:true},
+{id:291,name:'Noc Muzeów u Piłsudskich',inst:'Muzeum Józefa Piłsudskiego w Sulejówku',addr:'al. Piłsudskiego 29',city:'Sulejówek',dist:'',cluster:'outer',cats:['Koncert','Spacer','Wystawa','Zwiedzanie'],open:1020,close:1320,dur:60,os:'17:00',cs:'22:00',warsaw:false},
+{id:14,name:'Noc Muzeów w Aeroklubie Warszawskim',inst:'Aeroklub Warszawski',addr:'ul. Księżycowa 1',city:'Warszawa',dist:'Bemowo',cluster:'bemowo',cats:['Pokaz','Zwiedzanie'],open:960,close:1320,dur:45,os:'16:00',cs:'22:00',warsaw:true},
+{id:198,name:'Noc Muzeów w Belwederze',inst:'Kancelaria Prezydenta Rzeczypospolitej Polskiej',addr:'ul. Belwederska 56',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Zwiedzanie'],open:1020,close:1380,dur:45,os:'17:00',cs:'23:00',warsaw:true},
+{id:71,name:'Noc Muzeów w Centrum Edukacji i Historii Warszawskiej Straży Pożarnej',inst:'Komenda Miejska Państwowej Straży Pożarnej',addr:'ul. Marcinkowskiego 2',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Pokaz','Wystawa','Zwiedzanie'],open:1020,close:1320,dur:45,os:'17:00',cs:'22:00',warsaw:true},
+{id:375,name:'Noc Muzeów w Centrum Promocji Kultury',inst:'Centrum Promocji Kultury w Dzielnicy Praga-Południe m. st. Warszawy',addr:'ul. Podskarbińska 2',city:'Warszawa',dist:'Praga-Południe',cluster:'praga',cats:['Koncert','Warsztaty','Wernisaż','Wystawa'],open:1020,close:1380,dur:60,os:'17:00',cs:'23:00',warsaw:true},
+{id:146,name:'Noc Muzeów w dawnym więzieniu mokotowskim',inst:'Muzeum Żołnierzy Wyklętych i Więźniów Politycznych PRL (w organizacji)',addr:'ul. Rakowiecka 37',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:66,name:'Noc Muzeów w DGW 2026',inst:'Dowództwo Garnizonu Warszawa',addr:'pl. Piłsudskiego 4',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Pokaz','Spacer','Spotkanie','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:60,os:'18:00',cs:'23:00',warsaw:true},
+{id:178,name:'Noc Muzeów w Domu Artysty Plastyka',inst:'Okręg Warszawski Związku Polskich Artystów Plastyków',addr:'ul. Mazowiecka 11A',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Happening','Performance','Pokaz','Spacer','Spotkanie','Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1320,dur:60,os:'18:00',cs:'22:00',warsaw:true},
+{id:313,name:'Noc Muzeów w Domu Kultury Portiernia Ośrodka Kultury Arsus',inst:'Dom Kultury Portiernia Ośrodka Kultury Arsus w dzielnicy Ursus',addr:'ul. Traktorzystów 20',city:'Warszawa',dist:'Ursus',cluster:'ochota',cats:['Koncert','Warsztaty','Wystawa','Zwiedzanie'],open:1080,close:1410,dur:60,os:'18:00',cs:'23:30',warsaw:true},
+{id:226,name:'Noc Muzeów w domu pełnym historii – Środkowa 9',inst:'Centrum Wspierania Rodzin Rodzinna Warszawa',addr:'ul. Środkowa 9',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Zwiedzanie'],open:1080,close:1410,dur:45,os:'18:00',cs:'23:30',warsaw:true},
+{id:43,name:'Noc Muzeów w Domu Pogrzebowym Służew',inst:'Dom Pogrzebowy Służew Szczuciński, Czartoryska-Szulc sp. j.',addr:'ul. Fosa 19a',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Koncert','Pokaz','Spotkanie','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:60,os:'18:00',cs:'01:00',warsaw:true},
+{id:133,name:'Noc Muzeów w Europa Experience - Spotkania z Europą',inst:'Biuro Parlamentu Europejskiego w Polsce',addr:'ul. Jasna 14/16a',city:'parter',dist:'Warszawa',cluster:'outer',cats:['Film','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:90,os:'18:00',cs:'00:00',warsaw:false},
+{id:218,name:'Noc Muzeów w Filharmonii Narodowej',inst:'Filharmonia Narodowa w Warszawie',addr:'ul. Jasna 5',city:'wejście od strony ul. Sienkiewicza',dist:'Warszawa',cluster:'outer',cats:['Koncert','Zwiedzanie'],open:1320,close:1410,dur:60,os:'22:00',cs:'23:30',warsaw:false},
+{id:376,name:'Noc Muzeów w Fundacji Atelier',inst:'Fundacja Atelier',addr:'ul. Foksal 11 (I klatka',city:'2 piętro)',dist:'Warszawa',cluster:'outer',cats:['Warsztaty','Wystawa'],open:1080,close:1200,dur:60,os:'18:00',cs:'20:00',warsaw:false},
+{id:381,name:'Noc Muzeów w Galerii Metamorfozy',inst:'Fundacja Metamorfozy',addr:'ul. Marszałkowska 81 lok. 20',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Warsztaty','Wystawa'],open:1200,close:1560,dur:60,os:'20:00',cs:'02:00',warsaw:true},
+{id:385,name:'Noc Muzeów w Galerii Obok ZPAF',inst:'Związek Polskich Artystów Fotografików - Okręg Warszawski',addr:'pl. Zamkowy 8',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:57,name:'Noc Muzeów w Hali Koszyki',inst:'Hala Koszyki',addr:'ul. Koszykowa 63',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spacer','Zwiedzanie'],open:1140,close:1410,dur:45,os:'19:00',cs:'23:30',warsaw:true},
+{id:187,name:'Noc Muzeów w Izbie Pamięci Strzelecka 8',inst:'Izba Pamięci Strzelecka 8',addr:'ul. Strzelecka 8',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Koncert','Pokaz','Wystawa','Zwiedzanie'],open:960,close:1440,dur:60,os:'16:00',cs:'00:00',warsaw:true},
+{id:93,name:'Noc Muzeów w Jednostce Ratowniczo-Gaśniczej nr 7',inst:'Komenda Miejska PSP m.st. Warszawy Jednostka Ratowniczo-Gaśnicza nr 7',addr:'ul. Powstańców Śląskich 67',city:'Warszawa',dist:'Bemowo',cluster:'bemowo',cats:['Pokaz','Wystawa','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:120,name:'Noc Muzeów w Kancelarii Premiera',inst:'Kancelaria Prezesa Rady Ministrów',addr:'Al. Ujazdowskie 1/3',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:84,name:'Noc Muzeów w Karolinie',inst:'Państwowy Zespół Ludowy Pieśni i Tańca Mazowsze im. Tadeusza Sygietyńskiego w Karolinie',addr:'ul. Świerkowa 2',city:'Otrębusy',dist:'',cluster:'outer',cats:['Koncert','Pokaz','Wystawa','Zwiedzanie'],open:1080,close:1320,dur:60,os:'18:00',cs:'22:00',warsaw:false},
+{id:81,name:'Noc Muzeów w Koperniku',inst:'Centrum Nauki Kopernik',addr:'ul. Wybrzeże Kościuszkowskie 20',city:'Warszawa',dist:'Śródmieście',cluster:'riverside',cats:['Pokaz','Wystawa','Zwiedzanie'],open:1200,close:1530,dur:45,os:'20:00',cs:'01:30',warsaw:true},
+{id:167,name:'Noc Muzeów w kościele ewangelicko-augsburskim Świętej Trójcy',inst:'Parafia Ewangelicko-Augsburska Świętej Trójcy',addr:'pl. Małachowskiego 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Pokaz','Zwiedzanie'],open:1140,close:1380,dur:60,os:'19:00',cs:'23:00',warsaw:true},
+{id:377,name:'Noc Muzeów w Królikarni',inst:'Muzeum Rzeźby im. Xawerego Dunikowskiego w Królikarni, oddział Muzeum Narodowego w Warszawie',addr:'ul. Puławska 113a',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Pokaz','Warsztaty','Wystawa','Zwiedzanie'],open:1020,close:1260,dur:60,os:'17:00',cs:'21:00',warsaw:true},
+{id:105,name:'Noc Muzeów w Kuratorium Oświaty w Warszawie',inst:'Kuratorium Oświaty w Warszawie',addr:'Al. Jerozolimskie 32',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Spotkanie','Warsztaty','Zwiedzanie'],open:1020,close:1260,dur:60,os:'17:00',cs:'21:00',warsaw:true},
+{id:99,name:'Noc Muzeów w Mazowieckim Urzędzie Wojewódzkim',inst:'Mazowiecki Urząd Wojewódzki w Warszawie',addr:'pl. Bankowy 3/5',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Wykład','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:211,name:'Noc Muzeów w Miejscu Projektów Zachęty',inst:'Miejsce Projektów Zachęty',addr:'ul. Gałczyńskiego 3',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:45,os:'19:00',cs:'01:00',warsaw:true},
+{id:53,name:'Noc Muzeów w Ministerstwie Edukacji Narodowej',inst:'Ministerstwo Edukacji Narodowej',addr:'al. Szucha 25',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Warsztaty','Zwiedzanie'],open:1080,close:1500,dur:60,os:'18:00',cs:'01:00',warsaw:true},
+{id:48,name:'Noc Muzeów w Ministerstwie Sprawiedliwości',inst:'Ministerstwo Sprawiedliwości',addr:'Al. Ujazdowskie 11',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spacer','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:56,name:'Noc Muzeów w Ministerstwie Zdrowia',inst:'Ministerstwo Zdrowia',addr:'ul. Miodowa 15',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Warsztaty','Zwiedzanie'],open:1080,close:1440,dur:60,os:'18:00',cs:'00:00',warsaw:true},
+{id:243,name:'Noc Muzeów w MNW',inst:'Muzeum Narodowe w Warszawie',addr:'Al. Jerozolimskie 3',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:960,close:1440,dur:60,os:'16:00',cs:'00:00',warsaw:true},
+{id:383,name:'Noc Muzeów w MSNie - zwiedzanie aktualnych wystaw',inst:'Muzeum Sztuki Nowoczesnej w Warszawie',addr:'ul. Marszałkowska 103',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1200,close:1440,dur:45,os:'20:00',cs:'00:00',warsaw:true},
+{id:276,name:'Noc Muzeów w Muzeum Andrzeja Struga',inst:'Muzeum Andrzeja Struga',addr:'al. Niepodległości 210 m. 10',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:119,name:'Noc Muzeów w Muzeum Dulag 121',inst:'Muzeum Dulag 121',addr:'ul. 3 Maja 8a',city:'Pruszków',dist:'',cluster:'outer',cats:['Spacer','Wystawa','Zwiedzanie'],open:1020,close:1380,dur:45,os:'17:00',cs:'23:00',warsaw:false},
+{id:203,name:'Noc Muzeów w muzeum Fabryce Czekolady E.Wedel',inst:'Muzeum Fabryka Czekolady E.Wedel',addr:'al. Wedla 5',city:'Warszawa',dist:'Praga-Południe',cluster:'praga',cats:['Wystawa','Zwiedzanie'],open:1260,close:1500,dur:45,os:'21:00',cs:'01:00',warsaw:true},
+{id:388,name:'Noc Muzeów w Muzeum Grawitacji',inst:'Muzeum Grawitacji',addr:'ul. Świętojerska 5/7',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1140,close:1380,dur:45,os:'19:00',cs:'23:00',warsaw:true},
+{id:80,name:'Noc Muzeów w Muzeum Historii Pielęgniarstwa i Położnictwa',inst:'Główna Komisja Historyczna przy ZG Polskiego Towarzystwa Pielęgniarskiego pod patronatem WOIPiP',addr:'ul. Żelazna 59',city:'p. VII',dist:'Warszawa',cluster:'outer',cats:['Wystawa','Zwiedzanie'],open:1020,close:1380,dur:45,os:'17:00',cs:'23:00',warsaw:false},
+{id:300,name:'Noc Muzeów w Muzeum Historii Polski',inst:'Muzeum Historii Polski',addr:'ul. Gwardii 1',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Film','Pokaz','Spacer','Spotkanie','Warsztaty','Wernisaż','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:90,os:'18:00',cs:'00:00',warsaw:true},
+{id:233,name:'Noc Muzeów w Muzeum Historii Polskiego Ruchu Ludowego',inst:'Muzeum Historii Polskiego Ruchu Ludowego',addr:'al. Wilanowska 2024',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Koncert','Spacer','Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:960,close:1500,dur:60,os:'16:00',cs:'01:00',warsaw:true},
+{id:207,name:'Noc Muzeów w Muzeum Jana Pawła II i Prymasa Wyszyńskiego',inst:'Mt 5,14 \\| Muzeum Jana Pawła II i Prymasa Wyszyńskiego',addr:'ul. Prymasa Augusta Hlonda 1',city:'Warszawa',dist:'Wilanów',cluster:'mokotow',cats:['Film','Pokaz','Spacer','Spotkanie','Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:960,close:1440,dur:90,os:'16:00',cs:'00:00',warsaw:true},
+{id:61,name:'Noc Muzeów w Muzeum Katyńskim',inst:'Muzeum Katyńskie w Warszawie',addr:'ul. Jana Jeziorańskiego 4',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1020,close:1440,dur:45,os:'17:00',cs:'00:00',warsaw:true},
+{id:262,name:'Noc Muzeów w Muzeum Kolei Wąskotorowej w Sochaczewie',inst:'Muzeum Kolei Wąskotorowej w Sochaczewie',addr:'ul. Licealna 18',city:'Sochaczew',dist:'',cluster:'outer',cats:['Film','Koncert','Spacer','Wystawa','Zwiedzanie'],open:960,close:1380,dur:60,os:'16:00',cs:'23:00',warsaw:false},
+{id:273,name:'Noc Muzeów w Muzeum Literatury',inst:'Muzeum Literatury im. Adama Mickiewicza',addr:'Rynek Starego Miasta 20',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa','Zwiedzanie'],open:1140,close:1410,dur:45,os:'19:00',cs:'23:30',warsaw:true},
+{id:274,name:'Noc Muzeów w Muzeum Marii Dąbrowskiej',inst:'Muzeum Marii Dąbrowskiej',addr:'ul. Progi 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Wystawa','Zwiedzanie'],open:1020,close:1320,dur:45,os:'17:00',cs:'22:00',warsaw:true},
+{id:62,name:'Noc Muzeów w Muzeum Pałacu Króla Jana III w Wilanowie',inst:'Muzeum Pałacu Króla Jana III w Wilanowie',addr:'ul. Stanisława Kostki Potockiego 10/16',city:'Warszawa',dist:'Wilanów',cluster:'mokotow',cats:['Pokaz','Warsztaty','Wystawa','Zwiedzanie'],open:1020,close:1380,dur:60,os:'17:00',cs:'23:00',warsaw:true},
+{id:49,name:'Noc Muzeów w Muzeum Polskiej Techniki Wojskowej',inst:'Muzeum Polskiej Techniki Wojskowej - Odział Muzeum Wojska Polskiego w Warszawie',addr:'ul. Powsińska 13',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Film','Pokaz','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:90,os:'18:00',cs:'01:00',warsaw:true},
+{id:208,name:'Noc Muzeów w Muzeum Sportu i Turystyki',inst:'Muzeum Sportu i Turystyki w Warszawie',addr:'ul. Wybrzeże Gdyńskie 4',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Pokaz','Spotkanie','Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:60,os:'18:00',cs:'00:00',warsaw:true},
+{id:361,name:'Noc Muzeów w Muzeum Wojska Polskiego',inst:'Muzeum Wojska Polskiego',addr:'Cytadela Warszawska',city:'ul. Gwardii 4',dist:'Warszawa',cluster:'outer',cats:['Film','Pokaz','Spacer','Spotkanie','Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:960,close:1440,dur:90,os:'16:00',cs:'00:00',warsaw:false},
+{id:374,name:'Noc Muzeów w Muzeum Zimnej Wojny',inst:'Muzeum Zimnej Wojny',addr:'ul. Jezuicka 1/3',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa','Zwiedzanie'],open:1140,close:1440,dur:45,os:'19:00',cs:'00:00',warsaw:true},
+{id:308,name:'Noc Muzeów w Naczelnym Sądzie Administracyjnym',inst:'Naczelny Sąd Administracyjny',addr:'ul. Boduena 3/5',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Koncert','Pokaz','Warsztaty','Wystawa','Zwiedzanie'],open:960,close:1380,dur:60,os:'16:00',cs:'23:00',warsaw:true},
+{id:60,name:'Noc Muzeów w Narodowym Muzeum Techniki',inst:'Narodowe Muzeum Techniki',addr:'pl. Defilad 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Zwiedzanie'],open:960,close:1380,dur:45,os:'16:00',cs:'23:00',warsaw:true},
+{id:237,name:'Noc Muzeów w Ośrodku Grzybowska',inst:'Stołeczne Centrum Sportu AKTYWNA WARSZAWA, Ośrodek Grzybowska',addr:'ul. Grzybowska 35A',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Pokaz','Spotkanie'],open:1140,close:1500,dur:45,os:'19:00',cs:'01:00',warsaw:true},
+{id:96,name:'Noc Muzeów w PAN Muzeum Ziemi w Warszawie',inst:'PAN Muzeum Ziemi w Warszawie',addr:'Aleja Na Skarpie 20/26',city:'27',dist:'Warszawa',cluster:'outer',cats:['Wykład','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:false},
+{id:91,name:'Noc Muzeów w Państwowym Muzeum Archeologicznym w Warszawie',inst:'Państwowe Muzeum Archeologiczne w Warszawie',addr:'ul. Długa 52',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Pokaz','Warsztaty','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:60,os:'18:00',cs:'01:00',warsaw:true},
+{id:159,name:'Noc Muzeów w Pałacu Mała Wieś',inst:'Pałac Mała Wieś',addr:'Mała Wieś 40',city:'Belsk Duży',dist:'',cluster:'outer',cats:['Wystawa','Zwiedzanie'],open:1200,close:1440,dur:45,os:'20:00',cs:'00:00',warsaw:false},
+{id:219,name:'Noc Muzeów w Pałacu Staszica I',inst:'Polska Akademia Nauk.',addr:'ul. Nowy Świat 72',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Warsztaty','Wystawa','Zwiedzanie'],open:1140,close:1440,dur:60,os:'19:00',cs:'00:00',warsaw:true},
+{id:58,name:'Noc Muzeów w Pałacu Staszica II',inst:'Polska Akademia Nauk Archiwum w Warszawie',addr:'ul. Nowy Świat 72',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Koncert','Pokaz','Spektakl','Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:1140,close:1440,dur:60,os:'19:00',cs:'00:00',warsaw:true},
+{id:197,name:'Noc Muzeów w Pałacyku Konopackiego',inst:'Dom Kultury Praga w Dzielnicy Praga-Północ m.st. Warszawy',addr:'ul. Strzelecka 11/13',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Pokaz','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:321,name:'Noc Muzeów w Polskim Czerwonym Krzyżu',inst:'Polski Czerwony Krzyż',addr:'ul. Mokotowska 14',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Pokaz','Zwiedzanie'],open:1020,close:1410,dur:45,os:'17:00',cs:'23:30',warsaw:true},
+{id:339,name:'Noc Muzeów w przestrzeni Hallera 6',inst:'Bikowski Stróżyk Sp z o.o.',addr:'pl. Hallera 6/1',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spacer','Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:1080,close:1560,dur:45,os:'18:00',cs:'02:00',warsaw:true},
+{id:11,name:'Noc Muzeów w Radiu Kolor',inst:'Radio Kolor 103 FM',addr:'ul. Ludwika Narbutta 41/43',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:192,name:'Noc Muzeów w Radiu Warszawa',inst:'Radio Warszawa',addr:'ul. Floriańska 3',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spotkanie','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:112,name:'Noc Muzeów w Sądzie Okręgowym w Warszawie',inst:'Sąd Okręgowy w Warszawie',addr:'al. Solidarności 127',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Film','Pokaz','Spacer','Spotkanie','Wykład','Wystawa','Zwiedzanie'],open:1020,close:1320,dur:90,os:'17:00',cs:'22:00',warsaw:true},
+{id:59,name:'Noc Muzeów w Sali Tradycji Ordynariatu Polowego',inst:'Sala Tradycji Ordynariatu Polowego im. abp. gen. dyw. Józefa Feliksa Gawliny',addr:'ul. Długa 13/15',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Koncert','Wystawa','Zwiedzanie'],open:1080,close:1350,dur:60,os:'18:00',cs:'22:30',warsaw:true},
+{id:111,name:'Noc Muzeów w schronie',inst:'ArcelorMittal Warszawa Sp. z o.o.',addr:'ul. Kasprowicza 132',city:'Warszawa',dist:'Bielany',cluster:'zoliborz',cats:['Wystawa','Zwiedzanie'],open:960,close:1200,dur:45,os:'16:00',cs:'20:00',warsaw:true},
+{id:78,name:'Noc Muzeów w Sejmie',inst:'Sejm RP',addr:'ul. Wiejska 4/6/8',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Zwiedzanie'],open:1140,close:1440,dur:45,os:'19:00',cs:'00:00',warsaw:true},
+{id:34,name:'Noc Muzeów w Senacie RP z Patronem Roku 2026 – Andrzejem Wajdą',inst:'Senat Rzeczypospolitej Polskiej',addr:'ul. Wiejska 6/8',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Film','Wystawa','Zwiedzanie'],open:1140,close:1440,dur:90,os:'19:00',cs:'00:00',warsaw:true},
+{id:224,name:'Noc Muzeów w SGH',inst:'Szkoła Główna Handlowa w Warszawie',addr:'ul. Batorego 8',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Zwiedzanie'],open:1140,close:1470,dur:45,os:'19:00',cs:'00:30',warsaw:true},
+{id:44,name:'Noc Muzeów w siedzibie Ministerstwa Nauki i Szkolnictwa Wyższego',inst:'Ministerstwo Nauki i Szkolnictwa Wyższego',addr:'ul. Wspólna 1/3',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Warsztaty','Wystawa'],open:1020,close:1380,dur:60,os:'17:00',cs:'23:00',warsaw:true},
+{id:261,name:'Noc Muzeów w Stacji Muzeum',inst:'Stacja Muzeum',addr:'ul. Towarowa 3',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Film','Koncert','Performance','Spacer','Spotkanie','Wykład','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:60,os:'19:00',cs:'01:00',warsaw:true},
+{id:341,name:'Noc Muzeów w Starej Galerii ZPAF',inst:'Związek Polskich Artystów Fotografików - Okręg Warszawski',addr:'pl. Zamkowy 8',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:193,name:'Noc Muzeów w Straży Miejskiej m.st. Warszawy',inst:'Straż Miejska m.st. Warszawy',addr:'ul. Młynarska 43/45',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Pokaz','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:95,name:'Noc Muzeów w Teatrze Lalka - zwiedzanie kulis teatru',inst:'Teatr Lalka',addr:'pl. Defilad 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Zwiedzanie'],open:1110,close:1350,dur:45,os:'18:30',cs:'22:30',warsaw:true},
+{id:6,name:'Noc Muzeów w Teatrze Polskim',inst:'Teatr Polski im. Arnolda Szyfmana w Warszawie',addr:'ul. Karasia 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spacer','Wystawa','Zwiedzanie'],open:1260,close:1500,dur:45,os:'21:00',cs:'01:00',warsaw:true},
+{id:88,name:'Noc Muzeów w Warszawskiej Operze Kameralnej',inst:'Warszawska Opera Kameralna',addr:'al. Solidarności 76 B',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Koncert','Spektakl','Warsztaty','Zwiedzanie'],open:960,close:1440,dur:60,os:'16:00',cs:'00:00',warsaw:true},
+{id:210,name:'Noc Muzeów w Zachęcie – Narodowej Galerii Sztuki',inst:'Zachęta - Narodowa Galeria Sztuki',addr:'pl. Małachowskiego 3',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1140,close:1500,dur:30,os:'19:00',cs:'01:00',warsaw:true},
+{id:33,name:'Noc Muzeów w Żydowskim Instytucie Historycznym',inst:'Żydowski Instytut Historyczny',addr:'ul. Tłomackie 3/5',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:234,name:'Noc Muzeów z Instytutem Polonika',inst:'Narodowy Instytut Polskiego Dziedzictwa Kulturowego za Granicą POLONIKA',addr:'ul. Madalińskiego 101',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Film','Pokaz','Spotkanie','Wykład','Zwiedzanie'],open:1080,close:1350,dur:90,os:'18:00',cs:'22:30',warsaw:true},
+{id:230,name:'Noc Muzeów z Krajową Administracją Skarbową',inst:'Izba Administracji Skarbowej w Warszawie / Trzeci Urząd Skarbowy Warszawa - Śródmieście',addr:'ul. Lindleya 14',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spotkanie','Zwiedzanie'],open:1080,close:1320,dur:45,os:'18:00',cs:'22:00',warsaw:true},
+{id:212,name:'Noc Muzeów z Powstańcami Warszawskimi',inst:'Związek Powstańców Warszawskich i Dom Spotkań z Historią',addr:'ul. Długa 22',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Spotkanie','Wystawa'],open:1140,close:1440,dur:30,os:'19:00',cs:'00:00',warsaw:true},
+{id:72,name:'Noc Muzeów z Radiostacją Babice',inst:'Dom Kultury Stare Babice',addr:'skrzyżowanie ul. Radiowej z ul. płk Kazimierza Leskiego',city:'Warszawa',dist:'Bemowo',cluster:'bemowo',cats:['Spacer','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:141,name:'Noc Muzeów z Witoldem Pileckim',inst:'Instytut Pileckiego, Galeria w Domu Bez Kantów',addr:'ul. Krakowskie Przedmieście 11',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Pokaz','Spotkanie','Wystawa','Zwiedzanie'],open:960,close:1440,dur:45,os:'16:00',cs:'00:00',warsaw:true},
+{id:380,name:'Noc Muzeum w Zamku Królewskim w Warszawie',inst:'Zamek Królewski w Warszawie - Muzeum. Rezydencja Królów i Rzeczypospolitej',addr:'pl. Zamkowy 4',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Spacer','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:60,os:'19:00',cs:'01:00',warsaw:true},
+{id:209,name:'Noc Muzeum z Bolesławem Biegasem',inst:'Fundacja im. Bolesława Biegasa w Polsce',addr:'ul. Lwowska 6/13',city:'4 piętro',dist:'Warszawa',cluster:'outer',cats:['Wystawa'],open:1140,close:1440,dur:30,os:'19:00',cs:'00:00',warsaw:false},
+{id:136,name:'Noc na Woronicza. Zwiedzanie zajezdni Miejskich Zakładów Autobusowych',inst:'Miejskie Zakłady Autobusowe Sp. z o.o.',addr:'ul. Woronicza 29',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Pokaz','Spotkanie','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:39,name:'Noc u reformowanych',inst:'Parafia Ewangelicko-Reformowana w Warszawie',addr:'al. Solidarności 74',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Spotkanie','Wykład','Wystawa'],open:1080,close:1380,dur:60,os:'18:00',cs:'23:00',warsaw:true},
+{id:168,name:'Noc w aptece sprzed stu lat',inst:'Muzeum Farmacji im. mgr. Antoniny Leśniewskiej, oddział Muzeum Warszawy',addr:'ul. Piwna 31/33',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1140,close:1440,dur:45,os:'19:00',cs:'00:00',warsaw:true},
+{id:30,name:'Noc w Centrum Symulatorów Lotu Simair Virtual',inst:'Simair - Flight Simulation Center',addr:'ul. Taśmowa 8',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Happening','Pokaz','Spacer','Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:40,name:'Noc w Fabryce Samochodów Osobowych',inst:'Muzeum w Fabryce',addr:'ul. Jagiellońska 88',city:'hala lakierni',dist:'Warszawa',cluster:'outer',cats:['Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:false},
+{id:107,name:'Noc w Muzeum księdza Jerzego Popiełuszki',inst:'Muzeum Księdza Jerzego Popiełuszki w Warszawie',addr:'ul. Hozjusza 2',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:331,name:'Noc w Studio Sztuki Edyta Dzierż',inst:'Studio Sztuki Edyta Dzierż',addr:'ul. Nadwiślańska 23',city:'róg Ogińskiego',dist:'Warszawa',cluster:'outer',cats:['Performance','Pokaz','Spacer','Spotkanie','Wernisaż','Wystawa'],open:1140,close:1410,dur:40,os:'19:00',cs:'23:30',warsaw:false},
+{id:137,name:'Noc, a z nami wszystko staje się jasne!',inst:'Główny Urząd Miar',addr:'ul. Elektoralna 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Wystawa','Zwiedzanie'],open:1020,close:1410,dur:45,os:'17:00',cs:'23:30',warsaw:true},
+{id:8,name:'Nocne pływanie na Woli',inst:'Pływalnia Foka OSiR Wola',addr:'ul. Esperanto 5',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spacer'],open:1320,close:1500,dur:40,os:'22:00',cs:'01:00',warsaw:true},
+{id:9,name:'Nocne pływanie na Woli',inst:'Pływalnia Nowa Fala OSiR Wola',addr:'ul. Garbińskiego 1',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spacer'],open:1320,close:1500,dur:40,os:'22:00',cs:'01:00',warsaw:true},
+{id:10,name:'Nocne pływanie na Woli',inst:'Pływalnia Delfin OSiR Wola',addr:'ul. Kasprzaka 1/3',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spacer'],open:1320,close:1500,dur:40,os:'22:00',cs:'01:00',warsaw:true},
+{id:296,name:'Nocne Sensorysie',inst:'Tengent Ventures Sp. z o.o. Sensorysie Warszawa',addr:'ul. Różana 8',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spotkanie','Warsztaty','Zwiedzanie'],open:1230,close:1320,dur:60,os:'20:30',cs:'22:00',warsaw:true},
+{id:201,name:'Nocne zwiedzanie kaplic na Starych Powązkach',inst:'Społeczny Komitet Opieki nad Starymi Powązkami im Jerzego Waldorffa',addr:'ul. Powązkowska 14',city:'brama św. Honoraty',dist:'Warszawa',cluster:'outer',cats:['Spacer','Wykład','Zwiedzanie'],open:1080,close:1170,dur:45,os:'18:00',cs:'19:30',warsaw:false},
+{id:65,name:'Nocne zwiedzanie Muzeum Domków Lalek, Gier i Zabawek z latarkami',inst:'Muzeum Domków Lalek, Gier i Zabawek',addr:'ul. Podwale 15',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa','Zwiedzanie'],open:1140,close:1290,dur:45,os:'19:00',cs:'21:30',warsaw:true},
+{id:103,name:'Nocne zwiedzanie Muzeum Ewolucji',inst:'Muzeum Ewolucji Instytutu Paleobiologii PAN',addr:'Pałac Kultury i Nauki',city:'pl. Defilad 1',dist:'Warszawa',cluster:'outer',cats:['Warsztaty','Zwiedzanie'],open:1140,close:1440,dur:60,os:'19:00',cs:'00:00',warsaw:false},
+{id:110,name:'Nocne zwiedzanie Muzeum Geologicznego im. S.J. Thugutta',inst:'Wydział Geologii Uniwersytetu Warszawskiego',addr:'ul. Żwirki i Wigury 93',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Wystawa'],open:1140,close:1380,dur:30,os:'19:00',cs:'23:00',warsaw:true},
+{id:123,name:'Nocne Życie Żyrafy — gra terenowa na Skwerze Rzeźby na Woli',inst:'Wolskie Centrum Kultury',addr:'Skwer im. płk. Zdzisława Kuźmirskiego-Pacaka',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spacer','Warsztaty','Wystawa','Zwiedzanie'],open:1230,close:1320,dur:60,os:'20:30',cs:'22:00',warsaw:true},
+{id:52,name:'Nocny spacer po Torze Służewiec',inst:'Totalizator Sportowy, Oddział Tor Wyścigów Konnych Służewiec',addr:'ul. Puławska 266',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Spacer','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:4,name:'Nocny warsztat emisji głosu',inst:'Akademia Sztuki i Kultury',addr:'al. Jana Pawła II 36c',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Warsztaty'],open:1290,close:1350,dur:60,os:'21:30',cs:'22:30',warsaw:true},
+{id:354,name:'Nowe Dynasy. Były, są, będą? - wystawa fotografii, cyklografik i sitodruku',inst:'Dom Sztuki',addr:'ul. Sztuki 17',city:'Warszawa',dist:'Praga-Południe',cluster:'praga',cats:['Warsztaty','Wernisaż','Wystawa','Zwiedzanie'],open:1080,close:1320,dur:60,os:'18:00',cs:'22:00',warsaw:true},
+{id:158,name:'O malarzu Józefie Czapskim - wykład otwarty dr. Piotra Pańkowskiego w SCEK',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Jezuicka 4',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wykład'],open:1020,close:1170,dur:30,os:'17:00',cs:'19:30',warsaw:true},
+{id:334,name:'O sztuce sakralnej w sercu Warszawy - zwiedzanie Bazyliki Świętego Krzyża',inst:'Pietre Vive Warszawa',addr:'ul. Krakowskie Przedmieście 3',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wykład','Zwiedzanie'],open:1140,close:1320,dur:45,os:'19:00',cs:'22:00',warsaw:true},
+{id:252,name:'Obecność - wystawa rzeźb Łukasza Krupskiego',inst:'Konstanciński Dom Kultury Hugonówka',addr:'ul. Mostowa 15',city:'Konstancin-Jeziorna',dist:'',cluster:'outer',cats:['Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:false},
+{id:298,name:'Obserwacja Obrazów i Zjawiska Waloru o Zmierzchu',inst:'Galeria Apteka Sztuki - Zakład Aktywności Zawodowej',addr:'al. Wyzwolenia 3/5',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:1020,close:1500,dur:45,os:'17:00',cs:'01:00',warsaw:true},
+{id:356,name:'Ochota na obraz. Zobacz, usłysz i poczuj rytm dzielnicy',inst:'Ośrodek Kultury Ochoty',addr:'ul. Radomska 13/21',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Wystawa'],open:1170,close:1380,dur:30,os:'19:30',cs:'23:00',warsaw:true},
+{id:225,name:'Od Nowa - spotkanie i warsztaty w Galerii Fundacji Skarbnica Sztuki',inst:'Fundacja Skarbnica Sztuki',addr:'ul. Działdowska 8a lok. 504',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1020,close:1500,dur:60,os:'17:00',cs:'01:00',warsaw:true},
+{id:134,name:'Odkryj piękno historycznych haftów w Muzeum Archidiecezji Warszawskiej',inst:'Muzeum Archidiecezji Warszawskiej',addr:'ul. Dziekania 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Wykład','Wystawa','Zwiedzanie'],open:1170,close:1410,dur:45,os:'19:30',cs:'23:30',warsaw:true},
+{id:67,name:'Odkryj podziemny Muranów',inst:'Muzeum Getta Warszawskiego',addr:'Stanowisko archeologiczne u zbiegu ulic Miłej i Dubois',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Zwiedzanie'],open:1020,close:1200,dur:45,os:'17:00',cs:'20:00',warsaw:true},
+{id:317,name:'Odkryj zakamarki domu aukcyjnego DESA Unicum',inst:'DESA Unicum',addr:'ul. Piękna 1a',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1080,close:1230,dur:45,os:'18:00',cs:'20:30',warsaw:true},
+{id:36,name:'Oko w oko z Muter i Gottliebem',inst:'Fundacja Art Modern',addr:'ul. Jagiellońska 56/1/1a (wejście od pl. Hallera)',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1200,close:1260,dur:45,os:'20:00',cs:'21:00',warsaw:true},
+{id:370,name:'Opieka nad śpiącym',inst:'Windowlicker',addr:'Pawilon nr 40',city:'Nowy Bazar Różyckiego',dist:'ul.Targowa 54',cluster:'outer',cats:['Wystawa'],open:1080,close:1200,dur:30,os:'18:00',cs:'20:00',warsaw:false},
+{id:32,name:'Opowieści rysowane piaskiem',inst:'Diaz-art studio Anna Diaz Makovska',addr:'ul. Środkowa 3a lok 27',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Performance','Spektakl','Warsztaty'],open:960,close:1200,dur:60,os:'16:00',cs:'20:00',warsaw:true},
+{id:173,name:'Opowieści z Azji i Afryki. Cykl prelekcji Wydziału Kultur Azji i Afryki UW',inst:'Wydział Kultur Azji i Afryki Uniwersytetu Warszawskiego',addr:'ul. Krakowskie Przedmieście 26/28',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Spotkanie','Wykład','Zwiedzanie'],open:1110,close:1410,dur:45,os:'18:30',cs:'23:30',warsaw:true},
+{id:258,name:'Opowieści z Azji i Afryki. Gra terenowa Wydziału Kultur Azji i Afryki UW',inst:'Uniwersytet Warszawski, Wydział Kultur Azji i Afryki',addr:'ul. Krakowskie Przedmieście 26/28',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Spotkanie','Warsztaty','Zwiedzanie'],open:1140,close:1500,dur:60,os:'19:00',cs:'01:00',warsaw:true},
+{id:206,name:'Opowieści z Krochmalnej - czytanie performatywne tekstów pisanych przez wychowanków Janusza Korczaka',inst:'Korczakianum, oddział Muzeum Warszawy',addr:'ul. Jaktorowska 6',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spektakl','Spotkanie'],open:1050,close:1140,dur:60,os:'17:30',cs:'19:00',warsaw:true},
+{id:322,name:'Oprowadzania Rowieśnicze po wystawach w CSW',inst:'Centrum Sztuki Wspołczesnej Zamek Ujazdowski',addr:'ul. Jazdów 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Performance','Spacer','Warsztaty','Zwiedzanie'],open:1020,close:1140,dur:60,os:'17:00',cs:'19:00',warsaw:true},
+{id:205,name:'Oprowadzania wieczorne w Centrum Interpretacji Zabytku',inst:'Centrum Interpretacji Zabytku, oddział Muzeum Warszawy',addr:'ul. Brzozowa 11/13',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Spacer','Wykład','Zwiedzanie'],open:1140,close:1500,dur:45,os:'19:00',cs:'01:00',warsaw:true},
+{id:326,name:'Oprowadzanie kuratorskie po wystawie w CSW',inst:'Centrum Sztuki Współczesnej Zamek Ujazdowski',addr:'Jazdów 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Zwiedzanie'],open:1170,close:1260,dur:45,os:'19:30',cs:'21:00',warsaw:true},
+{id:241,name:'Otwarta Pracownia Południowa',inst:'Pracownia Południowa',addr:'ul. Grochowska 319',city:'Warszawa',dist:'Praga-Południe',cluster:'praga',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1020,close:1380,dur:45,os:'17:00',cs:'23:00',warsaw:true},
+{id:64,name:'Otwarte pracownie w kamienicy Ludwiki 1',inst:'Artdorre - pracownie artystyczne w kamienicy Ludwiki',addr:'ul. Ludwiki 1/sutereny',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Koncert','Pokaz','Spacer','Wernisaż','Wystawa','Zwiedzanie'],open:1080,close:1320,dur:60,os:'18:00',cs:'22:00',warsaw:true},
+{id:55,name:'Otwarte warsztaty DJ w Noc Muzeów',inst:'WSDJ Studio',addr:'ul. Hoża 9',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Warsztaty'],open:1140,close:1440,dur:60,os:'19:00',cs:'00:00',warsaw:true},
+{id:363,name:'Ożarów Mazowiecki nocą – spacer śladami historii miasta',inst:'Stowarzyszenie Ożarowski Portal Historyczny',addr:'ul. Kolejowa',city:'Ożarów Mazowiecki',dist:'',cluster:'outer',cats:['Spacer','Zwiedzanie'],open:1200,close:1320,dur:45,os:'20:00',cs:'22:00',warsaw:false},
+{id:200,name:'Pachnąca Noc w pracowni Taka Szpilka',inst:'Warszawskie Laboratorium Innowacji Społecznych Synergia - Taka Szpilka!',addr:'ul. Dembowskiego 1',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Warsztaty'],open:960,close:1320,dur:60,os:'16:00',cs:'22:00',warsaw:true},
+{id:367,name:'Pągowski nie tylko plakaty',inst:'Stratos Art Project',addr:'ul. Skorupki 5',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:true},
+{id:180,name:'Palmiry - otwarta księga',inst:'Muzeum - Miejsce Pamięci Palmiry, oddział Muzeum Warszawy',addr:'Droga Palmirska 1',city:'Czosnów',dist:'',cluster:'outer',cats:['Pokaz','Wykład','Zwiedzanie'],open:960,close:1110,dur:45,os:'16:00',cs:'18:30',warsaw:false},
+{id:288,name:'Pasja, nauka, tożsamość. Staszic i UW',inst:'Muzeum Uniwersytetu Warszawskiego',addr:'ul. Krakowskie Przedmieście 26/28',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Koncert','Pokaz','Spacer','Warsztaty','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:60,os:'19:00',cs:'01:00',warsaw:true},
+{id:47,name:'Patent by Night - Noc Muzeów w Urzędzie Patentowym RP',inst:'Urząd Patentowy Rzeczypospolitej Polskiej',addr:'al. Niepodległości 188/192',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spotkanie','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:349,name:'Performance na Jezuickiej',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Jezuicka 4',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Performance'],open:960,close:1080,dur:45,os:'16:00',cs:'18:00',warsaw:true},
+{id:271,name:'Piaseczyńska Noc Muzeów w klimacie PRL',inst:'Muzeum Piaseczna',addr:'pl. Piłsudskiego 10',city:'Piaseczno',dist:'',cluster:'outer',cats:['Koncert','Pokaz','Spacer','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:960,close:1410,dur:60,os:'16:00',cs:'23:30',warsaw:false},
+{id:19,name:'Piknik europejski w Ambasadzie Francji i Ambasadzie Niemiec',inst:'Ambasada Francji i Ambasada Niemiec',addr:'ul. Jazdów 9 i 12/2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Spacer','Spotkanie','Zwiedzanie'],open:960,close:1080,dur:60,os:'16:00',cs:'18:00',warsaw:true},
+{id:46,name:'Piknik Historia Zabawką Pisana',inst:'Powiatowe Centrum Kultury Fabryczka',addr:'ul. Orwida 20',city:'Wołomin',dist:'',cluster:'outer',cats:['Happening','Koncert','Pokaz','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1140,close:1440,dur:60,os:'19:00',cs:'00:00',warsaw:false},
+{id:157,name:'Plener malarski “Dachy Starówki“',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Jezuicka 4',city:'wejście od ul. Brzozowej',dist:'Warszawa',cluster:'outer',cats:['Warsztaty'],open:960,close:1140,dur:60,os:'16:00',cs:'19:00',warsaw:false},
+{id:359,name:'Pod Grunwaldem. Krzyżacy w Alternatywach',inst:'Ursynowskie Centrum Kultury Alternatywy',addr:'ul. Gandhi 9',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Film','Spotkanie'],open:1020,close:1320,dur:90,os:'17:00',cs:'22:00',warsaw:true},
+{id:384,name:'Pogrzeby Przyszłości. Wejdź, jeśli się odważysz',inst:'Polskie Stowarzyszenie Celebrantów Humanistycznych',addr:'ul. Powązkowska 2',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Pokaz','Spotkanie','Wykład'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:257,name:'Pokaz nocnego nieba przez teleskopy astronomiczne',inst:'Polskie Towarzystwo Miłośników Astronomii',addr:'pl. Defilad 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Spotkanie','Wystawa'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:350,name:'Pontiseum - plenerowa ekspozycja oryginalnych pozostałości historycznych, warszawskich mostów',inst:'Praska Ferajna (przewodnicy po Warszawie) i Instytut Badawczy Dróg i Mostów \\[wspólnie\\]',addr:'ul. Instytutowa 1',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spacer','Zwiedzanie'],open:960,close:1200,dur:45,os:'16:00',cs:'20:00',warsaw:true},
+{id:101,name:'PoRa na Noc w Muzeum Marii Skłodowskiej-Curie w Warszawie',inst:'Muzeum Marii Skłodowskiej-Curie w Warszawie',addr:'ul. Freta 16',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa','Zwiedzanie'],open:1020,close:1500,dur:45,os:'17:00',cs:'01:00',warsaw:true},
+{id:87,name:'Portret niedokończony - wystawa rzeźb Zofii Kubickiej',inst:'Galeria sztuki Po Prawej Stronie Wisły',addr:'ul. Konopacka 15/ 1a',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:213,name:'Powstańcze Kino w PAŚCIE',inst:'Światowy Związek Żołnierzy Armii Krajowej Okręg Warszawa',addr:'ul. Zielna 39',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Film','Spotkanie'],open:1080,close:1500,dur:90,os:'18:00',cs:'01:00',warsaw:true},
+{id:86,name:'Południk 21. Czapski – Kozera',inst:'Narodowe Centrum Kultury',addr:'ul. Krakowskie Przedmieście 15',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa'],open:960,close:1380,dur:30,os:'16:00',cs:'23:00',warsaw:true},
+{id:379,name:'Przedwojenna Warszawa w miniaturze w Teatrze Kamienica',inst:'Makieta Warszawy z 1939 \\| Teatr Kamienica',addr:'al. Solidarności 93',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz','Wystawa'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:263,name:'PrzeLoteria w Prześwicie',inst:'Prześwit Kolektywna Instytucja Kultury',addr:'ul. Freta 39',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Film','Koncert','Pokaz','Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:1110,close:1440,dur:60,os:'18:30',cs:'00:00',warsaw:true},
+{id:301,name:'Przewijamy Wstecz. Najntisy w Polsce',inst:'Filmoteka Narodowa - Instytut Audiowizualny',addr:'ul. Wałbrzyska 3/5',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Film','Pokaz','Spacer','Spotkanie','Warsztaty','Zwiedzanie'],open:1020,close:1260,dur:90,os:'17:00',cs:'21:00',warsaw:true},
+{id:131,name:'Przychodzi baba do lekarza... czyli o medycynie na wesoło!',inst:'Główna Biblioteka Lekarska im. Stanisława Konopki w Warszawie',addr:'ul. Jazdów 1A',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:386,name:'Przystanek Centrum - pawilon informacyjno-promocyjny m.st. Warszawy',inst:'Urząd Miasta Stołecznego Warszawy',addr:'pl. Defilad 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie'],open:1080,close:1410,dur:30,os:'18:00',cs:'23:30',warsaw:true},
+{id:199,name:'Pszczela Noc w ArtLabie',inst:'Warszawskie Laboratorium Innowacji Społecznych Synergia - ArtLab',addr:'ul. Markowska 16',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Warsztaty'],open:960,close:1320,dur:60,os:'16:00',cs:'22:00',warsaw:true},
+{id:102,name:'Pyry, bulwy i grule + domowa lemoniada z pigwy',inst:'Warszawskie Laboratorium Innowacji Społecznych Synergia-Cooklab',addr:'ul. Targowa 66/33',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Warsztaty'],open:960,close:1260,dur:60,os:'16:00',cs:'21:00',warsaw:true},
+{id:368,name:'Rapująca Historia Białołęki',inst:'Fundacja AVE',addr:'ul. Modlińska 197',city:'Warszawa',dist:'Białołęka',cluster:'bialoleka',cats:['Pokaz'],open:1260,close:1320,dur:45,os:'21:00',cs:'22:00',warsaw:true},
+{id:124,name:'Retro Noc Muzeów w WMKiG',inst:'Warszawskie Muzeum Komputerów i Gier',addr:'al. Niepodległości 208b',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1140,close:1440,dur:45,os:'19:00',cs:'00:00',warsaw:true},
+{id:174,name:'Robot Photon i przemiany energii',inst:'Warszawskie Laboratorium Innowacji Społecznych Synergia',addr:'ul. Markowska 16',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Warsztaty'],open:960,close:1320,dur:60,os:'16:00',cs:'22:00',warsaw:true},
+{id:184,name:'Rój. Wystawa malarstwa rodzeństwa Żądło',inst:'Cliché Gallery',addr:'ul. Freta 39',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa','Zwiedzanie'],open:960,close:1440,dur:45,os:'16:00',cs:'00:00',warsaw:true},
+{id:270,name:'Rozmowa z Mistrzem',inst:'Muzeum Sztuki Dziecka Fundacji Dziecko i Sztuka',addr:'ul. Mickiewicza 65',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Warsztaty','Wernisaż','Wystawa'],open:1020,close:1260,dur:60,os:'17:00',cs:'21:00',warsaw:true},
+{id:94,name:'Ruch należy do Ciebie – Noc Muzeów z SZACH-WAT',inst:'Wojskowa Akademia Techniczna im. Jarosława Dąbrowskiego',addr:'ul. Kaliskiego 19',city:'Warszawa',dist:'Bemowo',cluster:'bemowo',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:960,close:1200,dur:45,os:'16:00',cs:'20:00',warsaw:true},
+{id:185,name:'Rzecznik patentowy w krainie wynalazków',inst:'Polska Izba Rzeczników Patentowych',addr:'ul. Żelazna 59 lok. 134 (I piętro)',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Pokaz','Spotkanie','Warsztaty'],open:1050,close:1320,dur:60,os:'17:30',cs:'22:00',warsaw:true},
+{id:74,name:'Salon romantyczny Tekli Bądarzewskiej',inst:'Archiwum Państwowe w Warszawie',addr:'ul. Krzywe Koło 7',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:373,name:'Saunatic - wystawa plenerowa i film',inst:'StudioJOT',addr:'ul. Targowa 56 (wejście od ul. Ząbkowskiej 8-10',city:'przez parking)',dist:'Warszawa',cluster:'outer',cats:['Film','Wystawa'],open:1200,close:1320,dur:90,os:'20:00',cs:'22:00',warsaw:false},
+{id:135,name:'Sekrety Ministerstwa Rozowju i Technologii',inst:'Ministerstwo Rozwoju i Technologii',addr:'pl. Trzech Krzyży 3/5',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1020,close:1380,dur:45,os:'17:00',cs:'23:00',warsaw:true},
+{id:307,name:'Sensorium. W stronę zmysłowej uważności – Noc Muzeów w Centrum Myśli Jana Pawła II',inst:'Centrum Myśli Jana Pawła II',addr:'ul. Foksal 11',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Koncert','Spacer','Warsztaty','Wystawa'],open:1020,close:1410,dur:60,os:'17:00',cs:'23:30',warsaw:true},
+{id:248,name:'Sing Along, czyli spontaniczny chór plenerowy',inst:'Instytut Stefana Starzyńskiego, Muzeum Powstania Warszawskiego',addr:'ul. Towarowa 25',city:'00-844 Warszawa',dist:'Warszawa',cluster:'outer',cats:['Happening','Koncert','Performance'],open:1110,close:1230,dur:60,os:'18:30',cs:'20:30',warsaw:false},
+{id:287,name:'Śladami dinozaurów. Od pustyni Gobi do Muzeum Historii Naturalnej',inst:'Muzeum Historii Naturalnej',addr:'ul. Nowy Świat 72 (wejście od ul. Świętokrzyskiej)',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Wystawa'],open:960,close:1440,dur:30,os:'16:00',cs:'00:00',warsaw:true},
+{id:289,name:'Śladami historii kolei - nocne zwiedzanie siedziby Polskich Linii Kolejowych',inst:'PKP Polskie Linie Kolejowe S.A.',addr:'ul.Targowa 74',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spacer','Zwiedzanie'],open:960,close:1320,dur:45,os:'16:00',cs:'22:00',warsaw:true},
+{id:285,name:'SLEEPOVER 2 Picture Doc',inst:'Fundacja Picture Doc',addr:'ul. Warecka 4/6',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Warsztaty','Wystawa'],open:960,close:1320,dur:60,os:'16:00',cs:'22:00',warsaw:true},
+{id:251,name:'Spacer Śladami Konesera',inst:'Muzeum Polskiej Wódki',addr:'pl. Konesera 1',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spacer','Wykład','Zwiedzanie'],open:1080,close:1170,dur:45,os:'18:00',cs:'19:30',warsaw:true},
+{id:255,name:'Spacer wokół Placu Konstytucji',inst:'Stowarzyszenie Przewodników Turystycznych Złota Kaczka',addr:'start: pl. Konstytucji 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spacer','Zwiedzanie'],open:1080,close:1170,dur:45,os:'18:00',cs:'19:30',warsaw:true},
+{id:360,name:'Spacer “Wyjdź poza ramy“',inst:'Ośrodek Kultury Ochoty',addr:'Al. Jerozolimskie 58',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Spacer'],open:1170,close:1260,dur:40,os:'19:30',cs:'21:00',warsaw:true},
+{id:297,name:'Spojrzenie na północny Atlantyk – Kultura i dyplomacja Islandii',inst:'Ambasada Islandii w Warszawie',addr:'al. Armii Ludowej 26',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Warsztaty','Wykład'],open:1020,close:1260,dur:60,os:'17:00',cs:'21:00',warsaw:true},
+{id:163,name:'Spotkanie z historią i współczesnością w Technikum nr 7 d. Kolejówka',inst:'Technikum nr 7 w Zespole Szkół im. inż. Stanisława Wysockiego d. Kolejówka',addr:'ul. Szczęsliwicka 56',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Pokaz','Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:283,name:'Spotkanie z malarkami Grupy Trzy Barwy - autorkami wystawy “Źródło“',inst:'Katolickie Centrum Kultury Dobre Miejsce / Galeria Krużganek',addr:'ul. Dewajtis 3',city:'Dobre Miejsce',dist:'wejście A',cluster:'outer',cats:['Spotkanie','Wystawa'],open:960,close:1320,dur:30,os:'16:00',cs:'22:00',warsaw:false},
+{id:329,name:'Srebrna Noc w PME',inst:'Państwowe Muzeum Etnograficzne w Warszawie',addr:'ul. Kredytowa 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Film','Happening','Spotkanie','Wystawa','Zwiedzanie'],open:1020,close:1500,dur:90,os:'17:00',cs:'01:00',warsaw:true},
+{id:246,name:'Stanisław Baj i Przyjaciele - w Muzeum Wycinanki',inst:'Muzeum Wycinanki w Konstancinie-Jeziornie, oddział Konstancińskiego Domu Kultury',addr:'ul. Anny Walentynowicz 18',city:'Konstancin-Jeziorna',dist:'',cluster:'outer',cats:['Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:false},
+{id:151,name:'Svoysko - wystawa zbiorowa w Galerii Kazamaty w Starej Prochowni SCEK',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Boleść 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wykład'],open:960,close:1260,dur:30,os:'16:00',cs:'21:00',warsaw:true},
+{id:302,name:'Świat filmów Andrzeja Wajdy w WFDiF - kino plenerowe i pokazy PKF',inst:'Wytwrónia Filmów Dokumentalnych i Fabularnych',addr:'ul. Chełmska 21',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Film','Pokaz','Zwiedzanie'],open:1140,close:1380,dur:90,os:'19:00',cs:'23:00',warsaw:true},
+{id:130,name:'Świat leków po zmroku - w Muzeum Historii Medycyny UW',inst:'Muzeum Historii Medycyny Warszawskiego Uniwersytetu Medycznego',addr:'ul. Żwirki i Wigury 63',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Warsztaty','Wykład','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:60,os:'18:00',cs:'01:00',warsaw:true},
+{id:364,name:'Światła Miasta w Muzeum Neonów',inst:'Muzeum Neonów',addr:'pl. Defilad 1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1200,close:1440,dur:30,os:'20:00',cs:'00:00',warsaw:true},
+{id:92,name:'Światło Półksiężyca - Noc Kultury Muzułmańskiej',inst:'Ośrodek Kultury Muzułmańskiej',addr:'al. Bohaterów Września 23',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Pokaz','Spotkanie','Wykład','Zwiedzanie'],open:1080,close:1320,dur:45,os:'18:00',cs:'22:00',warsaw:true},
+{id:231,name:'Światło. Praktyki odporności - wystawa w Spectra Art Space',inst:'Fundacja Rodziny Staraków',addr:'Bobrowiecka 6',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Wystawa','Zwiedzanie'],open:1200,close:1290,dur:45,os:'20:00',cs:'21:30',warsaw:true},
+{id:312,name:'Swobodne Piękno: odkryj historię rewitalizacji pałaców Branickich i Szaniawskich',inst:'Hotel Verte, Warsaw, Autograph Collection',addr:'ul. Podwale 3A',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa','Zwiedzanie'],open:1140,close:1350,dur:45,os:'19:00',cs:'22:30',warsaw:true},
+{id:89,name:'Sztuka wychodzi z ram',inst:'PKO Bank Polski',addr:'ul. Marszałkowska 100/102',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Warsztaty','Wykład','Wystawa'],open:960,close:1500,dur:60,os:'16:00',cs:'01:00',warsaw:true},
+{id:90,name:'Sztuka wychodzi z ram',inst:'PKO Bank Polski',addr:'ul. Świętokrzyska 36',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Film','Spektakl','Warsztaty','Wykład','Wystawa'],open:960,close:1500,dur:60,os:'16:00',cs:'01:00',warsaw:true},
+{id:242,name:'Słowa i dźwięki - w Muzeum POLIN',inst:'Muzeum Historii Żydów Polskich POLIN',addr:'ul. Anielewicza 6',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Koncert','Pokaz','Warsztaty','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:60,os:'19:00',cs:'01:00',warsaw:true},
+{id:26,name:'Słowiańska Noc Muzeów - Koncert Kruczy Sen',inst:'Bielański Ośrodek Kultury',addr:'ul. Goldoniego 1',city:'Warszawa',dist:'Bielany',cluster:'zoliborz',cats:['Koncert'],open:1080,close:1200,dur:60,os:'18:00',cs:'20:00',warsaw:true},
+{id:155,name:'Tajemnice Mordoru – spacer z przewodnikiem PTTK',inst:'Dom Kultury KADR w Dzielnicy Mokotów m.st. Warszawy',addr:'start spaceru: róg Wilanowskiej i Wołoskiej (od strony Westfield Mokotów)',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spacer'],open:1020,close:1140,dur:40,os:'17:00',cs:'19:00',warsaw:true},
+{id:28,name:'Tajemnice warsztatu pszczelarza',inst:'Pszczelarium',addr:'ul. Konduktorska 17',city:'drewniany domek na Skwerze Gwiazda Polski',dist:'Warszawa',cluster:'outer',cats:['Pokaz','Warsztaty','Wykład'],open:1140,close:1410,dur:60,os:'19:00',cs:'23:30',warsaw:false},
+{id:108,name:'The Best of Muzeum Karykatury',inst:'Muzeum Karykatury',addr:'ul. Kozia 11',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:true},
+{id:152,name:'The War Next Door - w Galerii STALOWA',inst:'Galeria STALOWA',addr:'ul. Stalowa 26',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spotkanie','Wystawa','Zwiedzanie'],open:1080,close:1260,dur:45,os:'18:00',cs:'21:00',warsaw:true},
+{id:45,name:'Toast na Wierzbowej',inst:'Muzeum Wódki',addr:'ul. Wierzbowa 11',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Spacer','Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:346,name:'Topografia miękkiego gruntu – wystawa Gabrieli Piwar',inst:'Galeria Promocyjna',addr:'Rynek Starego Miasta 2',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Warsztaty','Wystawa'],open:960,close:1440,dur:60,os:'16:00',cs:'00:00',warsaw:true},
+{id:294,name:'Tour Głuchych w Noc Muzeów',inst:'Niezależny Kolektyw Sojuszniczy',addr:'start: Rynek Starego Miasta 2',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Spacer','Wystawa','Zwiedzanie'],open:1020,close:1350,dur:45,os:'17:00',cs:'22:30',warsaw:true},
+{id:144,name:'Twierdza Zmartwychwstanek dla Rodzin',inst:'Szkoły Sióstr Zmartwychwstanek',addr:'ul. Krasińskiego 31',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Pokaz','Spacer','Spektakl','Warsztaty','Wystawa','Zwiedzanie'],open:960,close:1080,dur:60,os:'16:00',cs:'18:00',warsaw:true},
+{id:260,name:'Utracone przyszłości - wystawa w Ośrodku Sztuki Lescer',inst:'Ośrodek Sztuki Lescer',addr:'ul. Pionierów 11/13',city:'Zalesie Górne',dist:'',cluster:'outer',cats:['Wernisaż','Wystawa','Zwiedzanie'],open:1140,close:1440,dur:45,os:'19:00',cs:'00:00',warsaw:false},
+{id:286,name:'VI Lipska Noc Muzeów',inst:'Stowarzyszenie Bezbłędna Gmina Błędów',addr:'Lipie 33',city:'Błędów',dist:'',cluster:'outer',cats:['Film','Koncert','Spacer','Spotkanie','Wystawa','Zwiedzanie'],open:960,close:1380,dur:60,os:'16:00',cs:'23:00',warsaw:false},
+{id:183,name:'W czerni kopię jak szpadlem w ziemi, w nadziei przejścia na drugą stronę',inst:'Galeria Test Mazowieckiego Instytutu Kultury',addr:'ul. Marszałkowska 34/50',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:337,name:'W trakcie patrzenia wszystko się zmienia',inst:'Fundacja Obserwacja',addr:'ul. Tarczyńska 3/9',city:'Warszawa',dist:'Ochota',cluster:'ochota',cats:['Spotkanie','Wernisaż','Wystawa','Zwiedzanie'],open:1140,close:1440,dur:45,os:'19:00',cs:'00:00',warsaw:true},
+{id:264,name:'Warszawa Marii Skłodowskiej-Curie: spacer do źródeł geniuszu (w jęz. angielskim)',inst:'Warszawskie Koło Przewodników Miejskich PTTK',addr:'ul. Przyrynek 2',city:'przy pomniku Marii Skłodowskiej-Curie',dist:'Warszawa',cluster:'outer',cats:['Spacer','Wykład'],open:960,close:1080,dur:40,os:'16:00',cs:'18:00',warsaw:false},
+{id:278,name:'Warszawa Struga, Dąbrowskiej i Broniewskiego. Literackie adresy – domy, które pisały historię',inst:'Muzeum Literatury im. Adama Mickiewicza',addr:'start: al. Niepodległości 210 m. 10',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spacer','Wykład','Wystawa','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:172,name:'Warszawskie City nocą, czyli jak łotrzykowska dzielnica zmieniła się w centrum biznesu',inst:'Muzeum Woli, oddział Muzeum Warszawy',addr:'ul. Srebrna 12',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spacer'],open:1080,close:1170,dur:40,os:'18:00',cs:'19:30',warsaw:true},
+{id:143,name:'Warszawskie opowieści...weduty - wystawa Piotra Szczepańskiego',inst:'Galeria Forma, Ośrodek Kultury Forma SBM Politechnika',addr:'ul. Żuławskiego 4/6',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spacer','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1080,close:1410,dur:60,os:'18:00',cs:'23:30',warsaw:true},
+{id:160,name:'Warsztaty filcowania w SCEK - spotkanie z rękodziełem',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Jezuicka 4',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Warsztaty'],open:1020,close:1140,dur:60,os:'17:00',cs:'19:00',warsaw:true},
+{id:121,name:'Warsztaty Filmowe Studio Eko News',inst:'Warszawskie Laboratorium Innowacji Społecznych Synergia - FabLab Kamera Akcja!',addr:'ul. Dembowskiego 1',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Film','Warsztaty'],open:960,close:1320,dur:90,os:'16:00',cs:'22:00',warsaw:true},
+{id:169,name:'Warsztaty stolarskie “Hotele dla owadów“',inst:'Warszawskie Laboratorium Innowacji Społecznych Synergia - FabLab W Tym Sęk!',addr:'ul. Dembowskiego 1',city:'02-784 Warszawa',dist:'Warszawa',cluster:'outer',cats:['Warsztaty'],open:960,close:1320,dur:60,os:'16:00',cs:'22:00',warsaw:false},
+{id:164,name:'Warsztaty w pracowni elektronicznej',inst:'Warszawskie Laboratorium Innowacji Społecznych Synergia - FabLab Oto Dioda!',addr:'ul. Dembowskiego 1',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Warsztaty'],open:960,close:1320,dur:60,os:'16:00',cs:'22:00',warsaw:true},
+{id:228,name:'Węgry okiem hungarystów',inst:'Instytut Liszta - Węgierski Instytut Kultury w Warszawie',addr:'ul. Moniuszki 10',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Film','Spotkanie','Warsztaty','Wykład','Wystawa'],open:960,close:1440,dur:90,os:'16:00',cs:'00:00',warsaw:true},
+{id:240,name:'Wernisaż wystawy malarstwa Filipa Moszanta',inst:'Dom w Alejach - filia Domu Kultury Śródmieście',addr:'Aleje Jerozolimskie 2',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Koncert','Wernisaż','Wystawa'],open:1140,close:1320,dur:60,os:'19:00',cs:'22:00',warsaw:true},
+{id:115,name:'Weź plakat z Galerii Arteneum',inst:'Galeria Arteneum - placówka Domu Kultury Świt w Warszawie',addr:'ul. Radzymińska 121',city:'Warszawa',dist:'Targówek',cluster:'praga',cats:['Spotkanie','Zwiedzanie'],open:1020,close:1260,dur:45,os:'17:00',cs:'21:00',warsaw:true},
+{id:249,name:'Wieczorny spacer po Targówku Fabrycznym',inst:'Stowarzyszenie Kolejka Marecka',addr:'start u zbiegu ulic Swojskiej i Jesiotrowej',city:'Warszawa',dist:'Targówek',cluster:'praga',cats:['Spacer','Spotkanie','Warsztaty','Wykład'],open:1170,close:1380,dur:60,os:'19:30',cs:'23:00',warsaw:true},
+{id:202,name:'Wiek Radia',inst:'Polskie Radio',addr:'al. NIepodległości 77/85',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Koncert','Zwiedzanie'],open:1140,close:1440,dur:60,os:'19:00',cs:'00:00',warsaw:true},
+{id:272,name:'Wiek Radia - w Trójce',inst:'Trójka - Program Trzeci Polskiego Radia',addr:'ul. Myśliwiecka 3/5/7',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Warsztaty','Zwiedzanie'],open:1140,close:1380,dur:60,os:'19:00',cs:'23:00',warsaw:true},
+{id:247,name:'Wielkie Otwarcie Pokoju na Lato – koncert zespołu Wiraszko',inst:'Instytut Stefana Starzyńskiego, oddział Muzeum Powstania Warszawskiego',addr:'ul. Towarowa 25',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Koncert'],open:1290,close:1380,dur:60,os:'21:30',cs:'23:00',warsaw:true},
+{id:122,name:'Wielkie Serca - Widowisko w Multimedialnym Parku Fontann',inst:'Stołeczna Estrada',addr:'Skwer 1 Dywizji Pancernej WP',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Pokaz'],open:1290,close:1320,dur:45,os:'21:30',cs:'22:00',warsaw:true},
+{id:387,name:'Wikingowie: Warsztaty dla dzieci',inst:'Ambasada Islandii w Warszawie',addr:'al. Armii Ludowej 26',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Warsztaty'],open:1080,close:1140,dur:60,os:'18:00',cs:'19:00',warsaw:true},
+{id:7,name:'Witamy w Armii Zbawienia',inst:'Armia Zbawienia / The Salvation Army',addr:'ul. Ząbkowska 13/13 (wejście od ulicy Brzeskiej)',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Spotkanie','Wykład','Zwiedzanie'],open:960,close:1080,dur:45,os:'16:00',cs:'18:00',warsaw:true},
+{id:83,name:'Wola w detalu. Fotospacer z drukarkami Instax Fujifilm szlakiem fotografii Andrzeja Georgiewa',inst:'Fundacja Archeologia Fotografii',addr:'ul. Chłodna 20',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Happening','Spacer','Warsztaty'],open:1110,close:1260,dur:60,os:'18:30',cs:'21:00',warsaw:true},
+{id:118,name:'Wolny Weekend na Osiedlu Jazdów',inst:'Związek Stowarzyszeń Partnerstwo Otwarty Jazdów / Wolny Jazdów',addr:'Osiedle Jazdów',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Happening','Koncert','Performance','Spacer','Spotkanie','Warsztaty','Wernisaż','Wystawa','Zwiedzanie'],open:960,close:1440,dur:60,os:'16:00',cs:'00:00',warsaw:true},
+{id:153,name:'Wspólny fundament - wystawa Uczniów Liceum Sztuk Plastycznych COSINUS im. Ludwiki Nitschowej',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Boleść 2',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:960,close:1260,dur:30,os:'16:00',cs:'21:00',warsaw:true},
+{id:254,name:'Współbrzmienia Błękitu na Brzeskiej',inst:'Fundacja Twoja Pasja',addr:'ul. Brzeska 20',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Pokaz','Spotkanie','Warsztaty','Wystawa','Zwiedzanie'],open:1170,close:1410,dur:60,os:'19:30',cs:'23:30',warsaw:true},
+{id:250,name:'Wydział Malarstwa - Pracownia 64',inst:'Fundacja Wojciecha Cieśniewskiego',addr:'ul. Hoża 27 lok. 8',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1080,close:1380,dur:30,os:'18:00',cs:'23:00',warsaw:true},
+{id:335,name:'Wystawa Agaty Borowej Galerii XX1',inst:'Galeria XX1 Mazowieckiego Instytutu Kultury',addr:'al. Jana Pawła II 36',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Wystawa'],open:1080,close:1320,dur:30,os:'18:00',cs:'22:00',warsaw:true},
+{id:342,name:'Wystawa Anety i Filipa Gębskich na Karowej',inst:'Atelier Gębscy',addr:'ul. Karowa 18a lok. 103',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Happening','Wernisaż','Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:true},
+{id:314,name:'Wystawa Barbary Levittoux-Świderskiej',inst:'Galeria Art Rytel',addr:'ul. Dynasy 22',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:true},
+{id:24,name:'Wystawa Biblii',inst:'Ruch Chrześcijański Mt28',addr:'ul. Polnej Róży 1 D',city:'Warszawa',dist:'Ursynów',cluster:'mokotow',cats:['Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:true},
+{id:189,name:'Wystawa harcerska Zuchy - najmłodsi członkowie ZHP',inst:'Filia Muzeum Harcerstwa w Ursusie',addr:'ul. Sosnkowskiego 16',city:'Warszawa',dist:'Ursus',cluster:'ochota',cats:['Film','Wystawa'],open:960,close:1410,dur:90,os:'16:00',cs:'23:30',warsaw:true},
+{id:147,name:'Wystawa Krzysztofa Olszewskiego w Galerii Abakus SCEK',inst:'Stołeczne Centrum Edukacji Kulturalnej im. KEN',addr:'ul. Jezuicka 4',city:'Warszawa',dist:'Śródmieście',cluster:'oldtown',cats:['Wystawa'],open:960,close:1260,dur:30,os:'16:00',cs:'21:00',warsaw:true},
+{id:191,name:'Wystawa malarstwa Magdaleny Szilke',inst:'Dom Kultury Śródmieście',addr:'ul. Smolna 9',city:'wejście od Alej Jerozolimskich 2',dist:'Warszawa',cluster:'outer',cats:['Spektakl','Wernisaż','Wystawa'],open:1170,close:1320,dur:60,os:'19:30',cs:'22:00',warsaw:false},
+{id:12,name:'Wystawa prac Magdaleny Abakanowicz i Wandy Czełkowskiej',inst:'Warszawska Historyczna Pracownia Artystyczna Wandy Czełkowskiej',addr:'ul. Magazynowa 14 a',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Wykład','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:330,name:'Wystawa reliefów akustycznych i gawędy przy ognisku o Słowiańskich Świętach Agrarnych',inst:'Fundacja Dotknij Obrazu',addr:'ul. 3 Maja 11',city:'Izabelin B',dist:'',cluster:'outer',cats:['Happening','Pokaz','Spotkanie','Wykład','Wystawa','Zwiedzanie'],open:1020,close:1320,dur:45,os:'17:00',cs:'22:00',warsaw:false},
+{id:42,name:'Wystawa sztuki: Too Much',inst:'Ogród Syrenich Śpiewów. Pracownia artystyczna i galeria',addr:'ul. Grzybowska 47a (pracownia ceramiki',city:'wejście z ulicy)',dist:'Warszawa',cluster:'outer',cats:['Wernisaż','Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:false},
+{id:315,name:'Wystawa wybranych aneksów do dyplomów z Pracowni Rysunku i Koloru Wydziału Scenografii',inst:'Akademia Sztuk Pięknych w Warszawie',addr:'ul. Myśliwiecka 1A',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa'],open:1080,close:1380,dur:30,os:'18:00',cs:'23:00',warsaw:true},
+{id:129,name:'Wystawa “Ceramiczne Maryjki z praskich podwórek“ i fotografie Warszawy',inst:'Szuflada Galeria',addr:'ul. Kawęczyńska 4',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:true},
+{id:37,name:'Wystawa “Plany na Przyszłość 2026“',inst:'ZODIAK Warszawski Pawilon Architektury',addr:'Pasaż Stefana Wiecheckiego Wiecha 4',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:960,close:1440,dur:45,os:'16:00',cs:'00:00',warsaw:true},
+{id:355,name:'Wystawa “Print 2026“',inst:'6 Piętro Kreacji',addr:'ul. Smulikowskiego 4a',city:'piętro 6',dist:'Warszawa',cluster:'outer',cats:['Koncert','Spotkanie','Warsztaty','Wernisaż','Wykład','Wystawa','Zwiedzanie'],open:960,close:1740,dur:60,os:'16:00',cs:'05:00',warsaw:false},
+{id:269,name:'Wywracam oczami nawet podczas snu - wystawa w Varsztatovni',inst:'Varsztatovnia',addr:'ul. Dzielna 5',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Spotkanie','Wernisaż','Wystawa'],open:1080,close:1380,dur:30,os:'18:00',cs:'23:00',warsaw:true},
+{id:299,name:'X Pawilon - znany i nieznany',inst:'Muzeum X Pawilonu Cytadeli Waszawskiej',addr:'ul. Skazańców 25',city:'Warszawa',dist:'Żoliborz',cluster:'zoliborz',cats:['Film','Pokaz','Warsztaty','Wystawa','Zwiedzanie'],open:1140,close:1500,dur:90,os:'19:00',cs:'01:00',warsaw:true},
+{id:371,name:'Zabytkowym autobusem w (rapującą) przeszłość Białołęki',inst:'Fundacja AVE / Urząd Dzielnicy Białołęka',addr:'start i powrót: ul. Modlińska 197',city:'Warszawa',dist:'Białołęka',cluster:'bialoleka',cats:['Spacer','Zwiedzanie'],open:1140,close:1260,dur:45,os:'19:00',cs:'21:00',warsaw:true},
+{id:372,name:'Zabytkowym autobusem w (rapującą) przeszłość Białołęki',inst:'Fundacja AVE / Urząd Dzielnicy Białołęka',addr:'ul. Modlińska 197',city:'Warszawa',dist:'Warszawa',cluster:'outer',cats:['Happening','Spacer','Zwiedzanie'],open:1320,close:1440,dur:45,os:'22:00',cs:'00:00',warsaw:true},
+{id:232,name:'Zachowajmy ich w pamięci - wystawa plenerowa',inst:'Muzeum Powstania Warszawskiego',addr:'ul. Wolska 182',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Wystawa'],open:1080,close:1500,dur:30,os:'18:00',cs:'01:00',warsaw:true},
+{id:41,name:'Zanurz się w Willi Waleria',inst:'Milanowskie Centrum Kultury',addr:'ul. Spacerowa 20',city:'Milanówek',dist:'',cluster:'outer',cats:['Koncert','Wystawa','Zwiedzanie'],open:1080,close:1380,dur:60,os:'18:00',cs:'23:00',warsaw:false},
+{id:316,name:'Zapach chleba o północy – Noc Muzeów w Piekarni Grzybki',inst:'Akademia Piekarza Grzybki',addr:'ul. Malownicza 33',city:'Warszawa',dist:'Włochy',cluster:'ochota',cats:['Warsztaty','Wykład','Zwiedzanie'],open:960,close:1500,dur:60,os:'16:00',cs:'01:00',warsaw:true},
+{id:100,name:'Ze Śmiercią Na Ty',inst:'Biuro Usług Pogrzebowych ANUBIS W. Kucharski',addr:'ul. Conrada 7',city:'Warszawa',dist:'Bielany',cluster:'zoliborz',cats:['Koncert','Spotkanie','Warsztaty','Wykład','Zwiedzanie'],open:1080,close:1500,dur:60,os:'18:00',cs:'01:00',warsaw:true},
+{id:236,name:'Zwiedzanie Cel Bezpieki z przewodnikiem',inst:'Cele Bezpieki, filia Muzeum Powstania Warszawskiego',addr:'Al. Ujazdowskie 11',city:'wejście od ul. św. Teresy',dist:'z tyłu budynku Ministerstwa',cluster:'outer',cats:['Wystawa','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:false},
+{id:79,name:'Zwiedzanie Centralnego Laboratorium w Warszawie',inst:'ALAB Laboratoria',addr:'ul. Zawodzie 22',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Spotkanie','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:18,name:'Zwiedzanie dawnego Domu Partii',inst:'Centrum Bankowo-Finansowe Nowy Świat S.A.',addr:'ul. Nowy Świat 6/12',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Spacer','Zwiedzanie'],open:1080,close:1380,dur:45,os:'18:00',cs:'23:00',warsaw:true},
+{id:194,name:'Zwiedzanie dawnej fabryki Pollena śladami Białego Jelenia',inst:'AFI Home',addr:'ul. Szwedzka 20',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Pokaz','Spacer','Zwiedzanie'],open:1020,close:1320,dur:45,os:'17:00',cs:'22:00',warsaw:true},
+{id:238,name:'Zwiedzanie ekspozycji Muzeum Powstania Warszawskiego',inst:'Muzeum Powstania Warszawskiego',addr:'ul. Grzybowska 79',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:222,name:'Zwiedzanie Elektrowni Powiśle z przewodnikiem',inst:'Elektrownia Powiśle',addr:'ul. Dobra 42',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spacer','Zwiedzanie'],open:1020,close:1080,dur:45,os:'17:00',cs:'18:00',warsaw:true},
+{id:13,name:'Zwiedzanie Gabinetu Prezydenta m.st. Warszawy',inst:'Urząd Miasta Stołecznego Warszawy',addr:'pl. Bankowy 3/5',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:244,name:'Zwiedzanie Galerii Lalek w Teatrze Baj',inst:'Teatr Baj',addr:'ul. Jagiellońska 28',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Zwiedzanie'],open:1110,close:1230,dur:45,os:'18:30',cs:'20:30',warsaw:true},
+{id:106,name:'Zwiedzanie Teatru Syrena od kulis',inst:'Teatr Syrena',addr:'ul. Litewska 3',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Spotkanie','Zwiedzanie'],open:960,close:1350,dur:45,os:'16:00',cs:'22:30',warsaw:true},
+{id:351,name:'Zwiedzanie Willi Żabińskich w Warszawskim ZOO',inst:'Miejski Ogród Zoologiczny im. Antoniny i Jana Żabińskich w Warszawie',addr:'ul. Ratuszowa 1/3',city:'Warszawa',dist:'Praga-Północ',cluster:'praga',cats:['Zwiedzanie'],open:1200,close:1380,dur:45,os:'20:00',cs:'23:00',warsaw:true},
+{id:195,name:'Zwiedzanie zabytkowej kamienicy Wolfa Krongolda',inst:'AFI Home',addr:'ul. Złota 83',city:'Warszawa',dist:'Wola',cluster:'centrum',cats:['Pokaz','Spacer','Wykład','Zwiedzanie'],open:1020,close:1350,dur:45,os:'17:00',cs:'22:30',warsaw:true},
+{id:215,name:'Złote Syreny, Koralowce i Boginie - Noc Muzeów w Muzeum Azji i Pacyfiku',inst:'Muzuem Azji i Pacyfiku im. Andrzeja Wawrzyniaka w Warszawie',addr:'ul. Solec 24',city:'Warszawa',dist:'Śródmieście',cluster:'riverside',cats:['Pokaz','Wystawa','Zwiedzanie'],open:1080,close:1500,dur:45,os:'18:00',cs:'01:00',warsaw:true},
+{id:177,name:'Złoty, złoto, niezależność - 10 lat Centrum Pieniądza NBP',inst:'Centrum Pieniądza NBP im. Sławomira S. Skrzypka',addr:'ul. Świętokrzyska 11/21 00-919 warszawa',city:'Warszawa',dist:'Śródmieście',cluster:'royalway',cats:['Zwiedzanie'],open:1080,close:1440,dur:45,os:'18:00',cs:'00:00',warsaw:true},
+{id:97,name:'Łukasz Breitenbach. Malarstwo - wernisaż wystawy',inst:'Galeria Sztuki Inwestycyjnej 3u10 własność IMMOQEE Sp. z o.o.',addr:'ul. Chodkiewicza 3/U10',city:'Warszawa',dist:'Mokotów',cluster:'mokotow',cats:['Wernisaż','Wystawa'],open:960,close:1320,dur:30,os:'16:00',cs:'22:00',warsaw:true},
+{id:162,name:'“Nowe miejsce“ - otwarcie wystawy w Galerii Beta16',inst:'Galeria Beta16',addr:'ul. Wilcza 18/1',city:'Warszawa',dist:'Śródmieście',cluster:'centrum',cats:['Wernisaż','Wystawa'],open:1080,close:1380,dur:30,os:'18:00',cs:'23:00',warsaw:true}
+];
+
+
+const TRAVEL = {
+  start:    {bemowo:20,bialoleka:30,praga:25,zoliborz:25,oldtown:20,riverside:20,royalway:20,centrum:15,ochota:25,mokotow:20,outer:35},
+  bemowo:   {bemowo:5, bialoleka:30,praga:35,zoliborz:35,oldtown:25,riverside:25,royalway:30,centrum:25,ochota:35,mokotow:30,outer:40},
+  bialoleka:{bemowo:30,bialoleka:8, praga:20,zoliborz:30,oldtown:30,riverside:35,royalway:40,centrum:35,ochota:50,mokotow:50,outer:40},
+  praga:    {bemowo:35,bialoleka:20,praga:5, zoliborz:25,oldtown:15,riverside:20,royalway:25,centrum:20,ochota:35,mokotow:30,outer:35},
+  zoliborz: {bemowo:35,bialoleka:30,praga:25,zoliborz:5, oldtown:20,riverside:25,royalway:30,centrum:25,ochota:35,mokotow:35,outer:40},
+  oldtown:  {bemowo:25,bialoleka:30,praga:15,zoliborz:20,oldtown:6, riverside:10,royalway:20,centrum:15,ochota:30,mokotow:25,outer:35},
+  riverside:{bemowo:25,bialoleka:35,praga:20,zoliborz:25,oldtown:10,riverside:7, royalway:15,centrum:15,ochota:30,mokotow:25,outer:35},
+  royalway: {bemowo:30,bialoleka:40,praga:25,zoliborz:30,oldtown:20,riverside:15,royalway:8, centrum:15,ochota:25,mokotow:20,outer:40},
+  centrum:  {bemowo:25,bialoleka:35,praga:20,zoliborz:25,oldtown:15,riverside:15,royalway:15,centrum:5, ochota:20,mokotow:15,outer:35},
+  ochota:   {bemowo:35,bialoleka:50,praga:35,zoliborz:35,oldtown:30,riverside:30,royalway:25,centrum:20,ochota:5, mokotow:20,outer:35},
+  mokotow:  {bemowo:30,bialoleka:50,praga:30,zoliborz:35,oldtown:25,riverside:25,royalway:20,centrum:15,ochota:20,mokotow:8, outer:35},
+  outer:    {bemowo:40,bialoleka:40,praga:35,zoliborz:40,oldtown:35,riverside:35,royalway:40,centrum:35,ochota:35,mokotow:35,outer:25},
+};
+
+function travelMin(f,t){return(TRAVEL[f]||TRAVEL.start)[t]||20;}
+
+function phase(v){
+  if(v.cluster==='outer')    return 8;
+  if(v.cluster==='bemowo')   return 0;
+  if(v.cluster==='bialoleka')return 0.5;
+  if(v.cluster==='praga')    return 1;
+  if(!v.fixed&&v.close<=1290) return 2;
+  if(v.cluster==='zoliborz') return 2.5;
+  if(v.cluster==='oldtown')  return 3;
+  if(v.cluster==='riverside'&&!v.fixed) return 3.5;
+  if(v.cluster==='royalway') return 4;
+  if(v.cluster==='centrum'&&!v.fixed) return 4;
+  if(v.cluster==='ochota')   return 4.5;
+  if(v.fixed)                return 5;
+  if(v.cluster==='mokotow')  return 6;
+  return 5;
+}
+
+function getTransport(from,to){
+  if(!from||from==='start') return null;
+  if(from===to){
+    if(['oldtown','riverside','royalway'].includes(to)) return {text:'Spacer ~5–8 min',type:'walk'};
+    if(to==='centrum') return {text:'Spacer ~5 min',type:'walk'};
+    if(to==='mokotow') return {text:'Spacer ~8 min',type:'walk'};
+    return {text:'Spacer',type:'walk'};
+  }
+  if(from==='bemowo'||to==='bemowo') return {text:'Taxi ~20–25 min',type:'taxi'};
+  if(from==='bialoleka'||to==='bialoleka') return {text:'Taxi lub bus ~25–30 min',type:'taxi'};
+  if(to==='praga'||from==='praga') return {text:'Metro M2 lub tramwaj linia M',type:'transit'};
+  if(to==='zoliborz') return {text:'Tramwaj (linia 17/7) ~20–25 min',type:'transit'};
+  if(from==='zoliborz') return {text:'Tramwaj w kierunku centrum',type:'transit'};
+  if((from==='oldtown'||from==='riverside')&&(to==='oldtown'||to==='riverside')) return {text:'Spacer ~10 min',type:'walk'};
+  if(to==='oldtown'||to==='riverside') return {text:'Spacer lub tramwaj ~15 min',type:'walk'};
+  if(to==='royalway') return {text:'Spacer lub bus ~15 min',type:'walk'};
+  if(to==='centrum') return {text:'Tramwaj lub linia C ~15 min',type:'transit'};
+  if(to==='ochota'||from==='ochota') return {text:'Taxi lub bus ~20–25 min',type:'taxi'};
+  if(to==='mokotow') return {text:'Taxi lub linia B ~15–20 min',type:'taxi'};
+  if(to==='outer') return {text:'Transport własny lub taxi',type:'taxi'};
+  return {text:'Bus lub tramwaj ~15 min',type:'transit'};
+}
+
+function fmt(m){const h=Math.floor(m/60)%24,mm=m%60;return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');}
+
+function computePlan(sel){
+  if(!sel.length) return [];
+  const sorted=[...sel].sort((a,b)=>{const pd=phase(a)-phase(b);return pd!==0?pd:a.open-b.open;});
+  const plan=[];let curTime=960,curCluster='start';
+  for(const v of sorted){
+    const tr=getTransport(curCluster,v.cluster);
+    if(v.fixed){
+      const gap=v.open-(curTime+travelMin(curCluster,v.cluster));
+      plan.push({v,start:v.open,end:v.open+v.dur,transport:tr,fixed:true,gap});
+      curTime=v.open+v.dur;curCluster=v.cluster;continue;
+    }
+    const tMin=travelMin(curCluster,v.cluster);
+    const earliest=Math.max(curTime+tMin,v.open);
+    const end=earliest+v.dur;
+    let warn=null;
+    if(earliest>=v.close) warn='missed';
+    else if(end>v.close) warn='tight';
+    else if(v.close-end<15) warn='close';
+    plan.push({v,start:earliest,end:warn==='missed'?earliest:end,transport:tr,warn});
+    if(warn!=='missed'){curTime=end;curCluster=v.cluster;}
+  }
+  return plan;
+}
+
+const selected=new Set();
+let filtered=[];
+
+function applyFilters(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const dist=document.getElementById('f-district').value;
+  const cat=document.getElementById('f-cat').value;
+  const minOpen=parseInt(document.getElementById('f-open').value)||0;
+  const minClose=parseInt(document.getElementById('f-close').value)||0;
+  const warsawOnly=document.getElementById('f-warsaw').checked;
+  filtered=VENUES.filter(v=>{
+    if(warsawOnly&&!v.warsaw) return false;
+    if(dist&&v.dist!==dist) return false;
+    if(cat&&!v.cats.includes(cat)) return false;
+    if(minOpen&&v.open>minOpen) return false;
+    if(minClose&&v.close<minClose) return false;
+    if(q){
+      const hay=(v.name+' '+v.inst+' '+v.addr+' '+v.dist).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  document.getElementById('f-result').textContent=filtered.length+' miejsc';
+  renderVenues();
+}
+
+function clearFilters(){
+  document.getElementById('search').value='';
+  document.getElementById('f-district').value='';
+  document.getElementById('f-cat').value='';
+  document.getElementById('f-open').value='';
+  document.getElementById('f-close').value='';
+  document.getElementById('f-warsaw').checked=true;
+  applyFilters();
+}
+
+function distClass(d){return 'bd-'+(d||'outer').replace(/\s/g,'-');}
+
+function renderVenues(){
+  const el=document.getElementById('venue-list');
+  let html='';
+  for(const v of filtered){
+    const sel=selected.has(v.id);
+    let badges='';
+    if(v.close<=1290&&!v.fixed) badges+=`<span class="bdg bdg-warn">DEADLINE ${fmt(v.close)}</span>`;
+    if(v.fixed) badges+=`<span class="bdg bdg-fixed">STAŁE OKNO</span>`;
+    const catbadges=v.cats.slice(0,2).map(c=>`<span class="bdg bdg-cat">${c}</span>`).join('');
+    const dc=distClass(v.dist);
+    html+=`<div class="vcard ${sel?'selected':'deselected'}" onclick="toggle(${v.id})" id="vc-${v.id}">
+      <div class="vcard-chk"><span class="vcard-tick">✓</span></div>
+      <div class="vcard-body">
+        <div class="vcard-name">${esc(v.name)}</div>
+        <div class="vcard-inst">${esc(v.inst)}</div>
+        <div class="vcard-foot">
+          <span class="vhours">${v.os}–${v.cs}</span>
+          <span class="bdg-d ${dc}">${v.dist||v.city}</span>
+          ${catbadges}${badges}
+        </div>
+      </div>
+      <a class="vcard-link" href="https://nocmuzeow.um.warszawa.pl/?page=de&id=${v.id}" target="_blank" onclick="event.stopPropagation()" title="Szczegóły">→</a>
+    </div>`;
+  }
+  if(!html) html='<div style="padding:30px;text-align:center;font-size:12px;color:rgba(255,255,255,.3)">Brak wyników dla tych filtrów.</div>';
+  el.innerHTML=html;
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function renderTimeline(){
+  const selVenues=VENUES.filter(v=>selected.has(v.id));
+  const plan=computePlan(selVenues);
+  const tl=document.getElementById('timeline');
+  if(!selected.size){
+    tl.innerHTML='<div class="no-plan"><strong>Zaznacz miejsca po lewej</strong>Algorytm ułoży optymalny plan zwiedzania z uwzględnieniem godzin otwarcia i transportu miejskiego.</div>';
+    return;
+  }
+  let html='<div class="tl">';
+  plan.forEach((item,i)=>{
+    const{v,start,end,transport,fixed,warn,gap}=item;
+    const hasLine=i<plan.length-1;
+    if(i>0&&transport){
+      const tc=`tl-tc tc-${transport.type}`;
+      html+=`<div class="tl-transport"><div style="width:20px;display:flex;justify-content:center"><div style="width:2px;height:14px;background:rgba(255,255,255,.07)"></div></div><span class="${tc}">${transport.text}</span></div>`;
+    } else if(i>0){html+=`<div style="height:5px"></div>`;}
+    let cc='tl-card'+(fixed?' fixed-win':'')+(warn==='missed'?' warn-missed':(warn==='tight'||warn==='close')?' warn-tight':'');
+    let tags='';
+    if(warn==='missed') tags+=`<span class="tag tag-missed">Niemożliwe w tym czasie</span>`;
+    else if(warn==='tight') tags+=`<span class="tag tag-tight">Wychodzisz po zamknięciu!</span>`;
+    else if(warn==='close') tags+=`<span class="tag tag-tight">&lt;15 min buforu</span>`;
+    else tags+=`<span class="tag tag-ok">OK</span>`;
+    if(fixed) tags+=`<span class="tag tag-fixed">Stałe okno</span>`;
+    if(v.close<=1290&&!v.fixed) tags+=`<span class="tag tag-close">Deadline ${fmt(v.close)}</span>`;
+    tags+=`<span class="tag tag-dur">~${v.dur} min</span>`;
+    tags+=`<a class="tag tag-link" href="https://nocmuzeow.um.warszawa.pl/?page=de&id=${v.id}" target="_blank">Szczegóły →</a>`;
+    let gapNote='';
+    if(fixed&&gap>0&&gap<60) gapNote=`<div class="gap-note">Docierasz ${gap} min przed startem — jest bufor.</div>`;
+    if(fixed&&gap<0) gapNote=`<div class="gap-note" style="color:#ff6450">Możliwe spóźnienie o ${Math.abs(gap)} min.</div>`;
+    html+=`<div class="tl-row">
+      <div class="tl-tc-col"><div class="tl-t">${fmt(start)}</div></div>
+      <div class="tl-dc"><div class="tl-dot dot-${v.cluster}"></div>${hasLine?'<div class="tl-line"></div>':''}</div>
+      <div class="tl-content"><div class="${cc}">
+        <div class="tl-cname">${esc(v.name)}</div>
+        <div class="tl-caddr">${esc(v.addr)} · ${v.dist||v.city}</div>
+        <div class="tl-ctags">${tags}</div>${gapNote}
+      </div></div>
+    </div>`;
+  });
+  html+='</div>';
+  const valid=plan.filter(p=>p.warn!=='missed');
+  const lastEnd=valid.length?valid[valid.length-1].end:960;
+  const missed=plan.filter(p=>p.warn==='missed');
+  html+=`<div class="summary">
+    <div class="sum-item"><strong>${valid.length}</strong>w planie</div>
+    ${missed.length?`<div class="sum-item"><strong style="color:#ff5040">${missed.length}</strong>niemożliwe</div>`:''}
+    <div class="sum-item"><strong>16:00</strong>start</div>
+    <div class="sum-item"><strong>${fmt(lastEnd)}</strong>koniec (szac.)</div>
+  </div>`;
+  tl.innerHTML=html;
+}
+
+function renderStats(){
+  document.getElementById('s-count').textContent=selected.size;
+  if(!selected.size){document.getElementById('s-end').textContent='—';return;}
+  const selVenues=VENUES.filter(v=>selected.has(v.id));
+  const plan=computePlan(selVenues);
+  const valid=plan.filter(p=>p.warn!=='missed');
+  const lastEnd=valid.length?valid[valid.length-1].end:960;
+  document.getElementById('s-end').textContent=fmt(lastEnd);
+}
+
+function toggle(id){
+  if(selected.has(id)) selected.delete(id); else selected.add(id);
+  const card=document.getElementById('vc-'+id);
+  if(card){card.classList.toggle('selected',selected.has(id));card.classList.toggle('deselected',!selected.has(id));}
+  update();
+}
+
+function update(){renderTimeline();renderStats();}
+
+applyFilters();
+update();
+</script>
+</body>
+</html>
