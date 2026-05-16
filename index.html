@@ -199,6 +199,18 @@ select.flt:focus{border-color:rgba(120,100,255,.4)}
   </div>
   <div class="hdr-right">
     <div class="chip"><b id="s-count">0</b> wyb.</div>
+    <select id="start-time" onchange="update()" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:14px;padding:3px 10px;color:#e8e8f0;font-size:11px;outline:none;cursor:pointer">
+      <option value="960">Start 16:00</option>
+      <option value="990">Start 16:30</option>
+      <option value="1020">Start 17:00</option>
+      <option value="1050">Start 17:30</option>
+      <option value="1080" selected>Start 18:00</option>
+      <option value="1110">Start 18:30</option>
+      <option value="1140">Start 19:00</option>
+      <option value="1170">Start 19:30</option>
+      <option value="1200">Start 20:00</option>
+      <option value="1260">Start 21:00</option>
+    </select>
     <div class="chip">Koniec: <b id="s-end">—</b></div>
     <button class="btn-share" id="btn-share" onclick="shareLink()" disabled>&#128279; Udostępnij</button>
   </div>
@@ -743,10 +755,12 @@ function getTransport(from,to){
 
 function fmt(m){const h=Math.floor(m/60)%24,mm=m%60;return String(h).padStart(2,'0')+':'+String(mm).padStart(2,'0');}
 
+function getStartTime(){return parseInt(document.getElementById('start-time').value)||960;}
+
 function computePlan(sel){
   if(!sel.length) return [];
   const sorted=[...sel].sort((a,b)=>{const pd=phase(a)-phase(b);return pd!==0?pd:a.open-b.open;});
-  const plan=[];let curTime=960,curCluster='start';
+  const plan=[];let curTime=getStartTime(),curCluster='start';
   for(const v of sorted){
     const tr=getTransport(curCluster,v.cluster);
     if(v.fixed){
@@ -943,7 +957,7 @@ function renderTimeline(){
   html+=`<div class="summary">
     <div class="sum-item"><strong>${valid.length}</strong>w planie</div>
     ${missed.length?`<div class="sum-item"><strong style="color:#ff5040">${missed.length}</strong>niemożliwe</div>`:''}
-    <div class="sum-item"><strong>16:00</strong>start</div>
+    <div class="sum-item"><strong>${fmt(getStartTime())}</strong>start</div>
     <div class="sum-item"><strong>${fmt(lastEnd)}</strong>koniec (szac.)</div>
   </div>`;
   tl.innerHTML=html;
