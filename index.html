@@ -49,7 +49,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:
 .filter-chevron{color:rgba(255,255,255,.3);font-size:13px;transition:transform .2s}
 .filter-wrap.open .filter-chevron{transform:rotate(180deg)}
 .filter-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;max-height:0;transition:max-height .25s ease}
-.filter-wrap.open .filter-body{max-height:400px}
+.filter-wrap.open .filter-body{max-height:600px;overflow:visible}
 .search-box{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 11px;color:#e8e8f0;font-size:12px;outline:none}
 .search-box::placeholder{color:rgba(255,255,255,.3)}
 .search-box:focus{border-color:rgba(120,100,255,.4)}
@@ -222,22 +222,22 @@ select.flt:focus{border-color:rgba(120,100,255,.4)}
               <span class="msd-arrow">▾</span>
             </button>
             <div class="msd-panel" id="msd-dist-panel">
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Bemowo')" id="msd-dist-Bemowo"><span class="msd-chk"></span>Bemowo</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Białołęka')" id="msd-dist-Białołeka"><span class="msd-chk"></span>Białołęka</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Bielany')" id="msd-dist-Bielany"><span class="msd-chk"></span>Bielany</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Mokotów')" id="msd-dist-Mokotow"><span class="msd-chk"></span>Mokotów</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Ochota')" id="msd-dist-Ochota"><span class="msd-chk"></span>Ochota</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Praga-Północ')" id="msd-dist-Praga-Połnoc"><span class="msd-chk"></span>Praga-Północ</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Praga-Południe')" id="msd-dist-Praga-Południe"><span class="msd-chk"></span>Praga-Południe</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Śródmieście')" id="msd-dist-Środmieście"><span class="msd-chk"></span>Śródmieście</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Targówek')" id="msd-dist-Targowek"><span class="msd-chk"></span>Targówek</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Ursus')" id="msd-dist-Ursus"><span class="msd-chk"></span>Ursus</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Ursynów')" id="msd-dist-Ursynow"><span class="msd-chk"></span>Ursynów</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Wawer')" id="msd-dist-Wawer"><span class="msd-chk"></span>Wawer</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Wilanów')" id="msd-dist-Wilanow"><span class="msd-chk"></span>Wilanów</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Wola')" id="msd-dist-Wola"><span class="msd-chk"></span>Wola</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Włochy')" id="msd-dist-Włochy"><span class="msd-chk"></span>Włochy</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-dist','Żoliborz')" id="msd-dist-Żoliborz"><span class="msd-chk"></span>Żoliborz</div>
+              <div class="msd-item" data-val="Bemowo" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Bemowo</div>
+              <div class="msd-item" data-val="Białołęka" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Białołęka</div>
+              <div class="msd-item" data-val="Bielany" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Bielany</div>
+              <div class="msd-item" data-val="Mokotów" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Mokotów</div>
+              <div class="msd-item" data-val="Ochota" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Ochota</div>
+              <div class="msd-item" data-val="Praga-Północ" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Praga-Północ</div>
+              <div class="msd-item" data-val="Praga-Południe" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Praga-Południe</div>
+              <div class="msd-item" data-val="Śródmieście" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Śródmieście</div>
+              <div class="msd-item" data-val="Targówek" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Targówek</div>
+              <div class="msd-item" data-val="Ursus" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Ursus</div>
+              <div class="msd-item" data-val="Ursynów" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Ursynów</div>
+              <div class="msd-item" data-val="Wawer" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Wawer</div>
+              <div class="msd-item" data-val="Wilanów" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Wilanów</div>
+              <div class="msd-item" data-val="Wola" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Wola</div>
+              <div class="msd-item" data-val="Włochy" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Włochy</div>
+              <div class="msd-item" data-val="Żoliborz" onclick="toggleMsdItem('msd-dist',this)"><span class="msd-chk"></span>Żoliborz</div>
             </div>
           </div>
           <div class="msd" id="msd-cat">
@@ -246,19 +246,19 @@ select.flt:focus{border-color:rgba(120,100,255,.4)}
               <span class="msd-arrow">▾</span>
             </button>
             <div class="msd-panel" id="msd-cat-panel">
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Film')" id="msd-cat-Film"><span class="msd-chk"></span>Film</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Happening')" id="msd-cat-Happening"><span class="msd-chk"></span>Happening</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Koncert')" id="msd-cat-Koncert"><span class="msd-chk"></span>Koncert</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Performance')" id="msd-cat-Performance"><span class="msd-chk"></span>Performance</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Pokaz')" id="msd-cat-Pokaz"><span class="msd-chk"></span>Pokaz</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Spacer')" id="msd-cat-Spacer"><span class="msd-chk"></span>Spacer</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Spektakl')" id="msd-cat-Spektakl"><span class="msd-chk"></span>Spektakl</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Spotkanie')" id="msd-cat-Spotkanie"><span class="msd-chk"></span>Spotkanie</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Warsztaty')" id="msd-cat-Warsztaty"><span class="msd-chk"></span>Warsztaty</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Wernisaż')" id="msd-cat-Wernisaż"><span class="msd-chk"></span>Wernisaż</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Wykład')" id="msd-cat-Wykład"><span class="msd-chk"></span>Wykład</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Wystawa')" id="msd-cat-Wystawa"><span class="msd-chk"></span>Wystawa</div>
-              <div class="msd-item" onclick="toggleMsdItem('msd-cat','Zwiedzanie')" id="msd-cat-Zwiedzanie"><span class="msd-chk"></span>Zwiedzanie</div>
+              <div class="msd-item" data-val="Film" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Film</div>
+              <div class="msd-item" data-val="Happening" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Happening</div>
+              <div class="msd-item" data-val="Koncert" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Koncert</div>
+              <div class="msd-item" data-val="Performance" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Performance</div>
+              <div class="msd-item" data-val="Pokaz" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Pokaz</div>
+              <div class="msd-item" data-val="Spacer" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Spacer</div>
+              <div class="msd-item" data-val="Spektakl" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Spektakl</div>
+              <div class="msd-item" data-val="Spotkanie" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Spotkanie</div>
+              <div class="msd-item" data-val="Warsztaty" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Warsztaty</div>
+              <div class="msd-item" data-val="Wernisaż" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Wernisaż</div>
+              <div class="msd-item" data-val="Wykład" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Wykład</div>
+              <div class="msd-item" data-val="Wystawa" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Wystawa</div>
+              <div class="msd-item" data-val="Zwiedzanie" onclick="toggleMsdItem('msd-cat',this)"><span class="msd-chk"></span>Zwiedzanie</div>
             </div>
           </div>
         </div>
@@ -785,17 +785,17 @@ function toggleMsd(id){
   if(!wasOpen) el.classList.add('open');
 }
 
-function toggleMsdItem(msdId, value){
+function toggleMsdItem(msdId, el){
+  const value=el.dataset.val;
   const st=msdState[msdId];
   if(st.has(value)) st.delete(value); else st.add(value);
-  // update item UI
-  const sanitize=v=>v.replace(/[\s/]/g,'-').replace(/[ółźćńęąśż]/g,c=>({ó:'o',ł:'l',ź:'z',ć:'c',ń:'n',ę:'e',ą:'a',ś:'s',ż:'z'}[c]||c));
-  let itemId;
-  if(msdId==='msd-dist') itemId=`msd-dist-${sanitize(value)}`;
-  else itemId=`msd-cat-${value}`;
-  const item=document.getElementById(itemId);
-  if(item) item.classList.toggle('checked',st.has(value));
-  // update button label
+  // update all items in panel (reliable, no ID mismatch)
+  document.querySelectorAll(`#${msdId}-panel .msd-item[data-val]`).forEach(item=>{
+    const v=item.dataset.val;
+    item.classList.toggle('checked',st.has(v));
+    const chk=item.querySelector('.msd-chk');
+    if(chk) chk.textContent=st.has(v)?'✓':'';
+  });
   updateMsdLabel(msdId);
   applyFilters();
   event.stopPropagation();
@@ -855,7 +855,11 @@ function clearFilters(){
   document.getElementById('f-warsaw').checked=true;
   ['msd-dist','msd-cat'].forEach(id=>{
     msdState[id].clear();
-    document.querySelectorAll(`#${id}-panel .msd-item`).forEach(el=>el.classList.remove('checked'));
+    document.querySelectorAll(`#${id}-panel .msd-item[data-val]`).forEach(el=>{
+      el.classList.remove('checked');
+      const chk=el.querySelector('.msd-chk');
+      if(chk) chk.textContent='';
+    });
     updateMsdLabel(id);
   });
   applyFilters();
